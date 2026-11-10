@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assignments | Danish Haikel</title>
+<meta name="description" content="Instructions and briefs for Danish Haikel's group assignments.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&display=swap">
+<style>
+/*
+  danishhaikel.com
+  Brand: Sempadan Fikir. Crimson, yellow highlight bars, cream paper, pink accent, Archivo.
+  The big idea: the topics section is built like an Instagram carousel you swipe through,
+  because that is where Sempadan Fikir lives. Photos are shown as crimson duotones so
+  every picture looks like it belongs to the brand.
+*/
+:root{
+  --crimson:#E11A45; --yellow:#EDC92C; --cream:#EFECD7; --pink:#E3AFC9; --ink:#24131C;
+  --bg:#EFECD7; --text:#24131C; --muted:#6B5560; --line:rgba(36,19,28,.18); --link:#B3102F;
+  --hero-bg:#E11A45; --hero-text:#FBF8EC; --panel:#E3AFC9;
+  --font:"Archivo",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1C0F16; --text:#F1ECDD; --muted:#BFAEB6; --line:rgba(241,236,221,.18); --link:#F28CA4;
+  --hero-bg:#B5103A; --panel:#3A1F2C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1C0F16; --text:#F1ECDD; --muted:#BFAEB6; --line:rgba(241,236,221,.18); --link:#F28CA4;
+  --hero-bg:#B5103A; --panel:#3A1F2C; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:1.0625rem;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:var(--link);text-underline-offset:3px;text-decoration-thickness:1.5px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline-offset:3px;border-radius:4px}
+p{margin:0}
+h1,h2,h3{margin:0}
+.col{max-width:1160px;margin:0 auto;padding-inline:max(20px,env(safe-area-inset-left,0px))}
+
+/* ---------- highlight bar (brand) ---------- */
+.hl{position:relative;color:var(--ink);padding-inline:.08em;z-index:0;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:linear-gradient(var(--yellow),var(--yellow)) 0 62%/100% 76% no-repeat}
+
+/* ---------- header ---------- */
+.top{background:var(--hero-bg);color:var(--hero-text);position:relative;z-index:3}
+.top .col{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:18px;flex-wrap:wrap}
+.mark{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-weight:800;font-stretch:115%;font-size:1.05rem}
+.mark span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--yellow);color:var(--ink);font-size:.8rem;font-weight:900}
+nav ul{list-style:none;margin:0;padding:0;display:flex;gap:4px 20px;flex-wrap:wrap}
+nav a{color:var(--hero-text);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+nav a[aria-current="page"]{text-decoration:underline;text-decoration-color:var(--yellow);text-decoration-thickness:3px}
+
+/* ---------- hero ---------- */
+.hero{background:var(--hero-bg);color:var(--hero-text);position:relative;overflow:hidden}
+.hero .col{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:40px;align-items:end;padding-block:40px 64px}
+.hero h1{font-weight:900;font-stretch:120%;font-size:clamp(2.8rem,7.4vw,6.2rem);line-height:.94;letter-spacing:-.02em}
+.hero h1 .hl{animation:bar .8s cubic-bezier(.3,.7,.2,1) both}
+.hero h1 .hl + .hl{animation-delay:.2s}
+@keyframes bar{from{background-size:0% 76%}}
+.lede{margin-top:26px;max-width:54ch;font-size:clamp(1.05rem,2vw,1.22rem);line-height:1.55}
+.ctas{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:inherit;font-weight:700;font-size:1rem;text-decoration:none;padding:13px 22px;border-radius:999px;border:2px solid currentColor;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.solid{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+.btn.line{color:var(--hero-text)}
+.btn.red{background:var(--crimson);border-color:var(--crimson);color:#FBF8EC}
+
+/* hero photo: duotone frame with a sticker */
+.hero-photo{position:relative;justify-self:end;width:min(100%,420px)}
+.frame{position:relative;aspect-ratio:4/5;border-radius:22px;overflow:hidden;background:#8E0F2B;transform:rotate(2.5deg);box-shadow:0 30px 60px -20px rgba(36,19,28,.55)}
+.duo img,.frame img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.15) brightness(1.05);mix-blend-mode:multiply}
+.frame::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(36,19,28,.55))}
+.frame figcaption{position:absolute;left:18px;bottom:16px;z-index:1;font-weight:700;font-size:.9rem;color:#FBF8EC}
+.sticker{position:absolute;left:-46px;top:-30px;width:132px;height:132px;z-index:2}
+.sticker svg{width:100%;height:100%;animation:spin 22s linear infinite}
+.sticker b{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-stretch:125%;font-size:1.7rem;color:var(--ink)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- ticker ---------- */
+.ticker{background:var(--yellow);color:var(--ink);overflow:hidden;border-block:3px solid var(--ink);position:relative;z-index:2}
+.ticker-track{display:flex;width:max-content;animation:tick 38s linear infinite}
+.ticker span{white-space:nowrap;font-weight:900;font-stretch:118%;font-size:clamp(1.1rem,2.4vw,1.5rem);padding:12px 0}
+.ticker span::after{content:"";display:inline-block;width:.55em;height:.55em;margin:0 .9em;background:var(--crimson);transform:rotate(45deg) translateY(-.08em)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- section headings ---------- */
+.sec{padding-block:88px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:32px}
+.sec h2{font-weight:900;font-stretch:118%;font-size:clamp(2.1rem,5.4vw,3.8rem);line-height:.95;letter-spacing:-.015em;max-width:16ch}
+.sec-head p{color:var(--muted);max-width:42ch}
+
+/* ---------- carousel of topics ---------- */
+.rail-wrap{position:relative}
+.rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px max(20px,calc((100vw - 1160px)/2 + 20px)) 24px;scrollbar-width:none;margin-inline:calc(50% - 50vw)}
+.rail::-webkit-scrollbar{display:none}
+.post{position:relative;flex:0 0 min(78vw,330px);aspect-ratio:4/5;border-radius:20px;overflow:hidden;scroll-snap-align:center;background:var(--crimson);color:#FBF8EC;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
+.post img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.2);mix-blend-mode:multiply;z-index:-2}
+.post::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(36,19,28,0) 30%,rgba(36,19,28,.78));z-index:-1}
+.post.text{background:var(--yellow);color:var(--ink)}
+.post.text::before{display:none}
+.post.pink{background:var(--pink);color:var(--ink)}
+.post.pink::before{display:none}
+.post-body{padding:22px;display:flex;flex-direction:column;gap:10px}
+.post .badge{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;background:#FBF8EC;color:var(--crimson);display:grid;place-items:center;font-weight:900;font-size:.8rem;font-stretch:120%}
+.post.text .badge{background:var(--ink);color:var(--yellow)}
+.post .pager{position:absolute;top:22px;right:18px;font-weight:700;font-size:.8rem;background:rgba(36,19,28,.55);color:#FBF8EC;padding:3px 9px;border-radius:999px}
+.post .label{font-weight:700;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;opacity:.9}
+.post h3{font-weight:900;font-stretch:115%;font-size:clamp(1.6rem,4.4vw,2rem);line-height:1;letter-spacing:-.01em}
+.post p{font-size:.95rem;line-height:1.45;opacity:.92}
+.rail-nav{display:flex;gap:10px}
+.rail-nav button{width:48px;height:48px;border-radius:50%;border:2px solid var(--text);background:transparent;color:var(--text);font:inherit;font-size:1.3rem;font-weight:800;cursor:pointer;display:grid;place-items:center}
+.rail-nav button:hover{background:var(--text);color:var(--bg)}
+
+/* ---------- research ---------- */
+.research{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px}
+.trophy{background:var(--ink);color:#FBF8EC;border-radius:24px;padding:32px;display:flex;flex-direction:column;justify-content:space-between;gap:28px;position:relative;overflow:hidden;min-height:340px}
+.trophy::before{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:var(--crimson)}
+.trophy::after{content:"";position:absolute;right:30px;top:30px;width:70px;height:70px;border-radius:50%;background:var(--yellow)}
+.trophy .yr{font-weight:900;font-stretch:125%;font-size:clamp(3.4rem,8vw,5.4rem);line-height:.85;color:var(--yellow);position:relative}
+.trophy h3{font-weight:900;font-stretch:115%;font-size:1.9rem;line-height:1.05}
+.trophy p{color:#D8C9CF;margin-top:8px}
+.work{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:20px}
+.work li{background:var(--panel);color:var(--ink);border-radius:24px;padding:28px;display:flex;flex-direction:column;gap:8px;flex:1}
+:root[data-theme="dark"] .work li{color:var(--text)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .work li{color:var(--text)}}
+.work .tag{align-self:flex-start;font-weight:700;font-size:.8rem;background:var(--bg);color:var(--text);padding:3px 10px;border-radius:999px}
+.work h3{font-weight:850;font-stretch:110%;font-size:1.45rem;line-height:1.15}
+.work p{opacity:.85}
+
+/* ---------- built: map collage ---------- */
+.built{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:48px;align-items:center}
+.collage{position:relative;padding:20px 40px 60px 0}
+.map{background:#fff;padding:12px 12px 40px;border-radius:6px;transform:rotate(-2deg);box-shadow:0 26px 50px -18px rgba(36,19,28,.5)}
+.map img{width:100%;border-radius:2px}
+.map figcaption{font-size:.75rem;color:#6B5560;margin-top:10px;max-width:52%;line-height:1.35}
+.tape{position:absolute;top:6px;left:42%;width:110px;height:30px;background:rgba(237,201,44,.85);transform:rotate(-6deg);z-index:2}
+.polaroid{position:absolute;right:0;bottom:0;width:42%;background:#fff;padding:8px 8px 30px;border-radius:4px;transform:rotate(5deg);box-shadow:0 20px 40px -14px rgba(36,19,28,.5);z-index:3}
+.polaroid img{aspect-ratio:1;object-fit:cover;width:100%;background:#ddd}
+.polaroid figcaption{font-size:.72rem;color:#6B5560;margin-top:6px;text-align:center}
+.built-txt{display:flex;flex-direction:column;gap:18px}
+.built-txt h3{font-weight:900;font-stretch:118%;font-size:clamp(2rem,4.6vw,3rem);line-height:.95}
+.built-txt p{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-block:2px solid var(--text)}
+.stats div{padding:14px 10px 14px 0}
+.stats div + div{border-left:1px solid var(--line);padding-left:14px}
+.stats b{display:block;font-weight:900;font-stretch:120%;font-size:clamp(1.6rem,3.6vw,2.3rem);line-height:1;color:var(--crimson)}
+:root[data-theme="dark"] .stats b{color:var(--pink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stats b{color:var(--pink)}}
+.stats span{font-size:.85rem;color:var(--muted)}
+
+/* ---------- about ---------- */
+.about{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;align-items:start}
+.portrait{position:relative;aspect-ratio:4/5;border-radius:24px;background:var(--crimson);overflow:hidden;display:grid;place-items:center}
+.portrait b{font-weight:900;font-stretch:125%;font-size:4.2rem;color:var(--yellow)}
+.portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.about-txt{display:flex;flex-direction:column;gap:24px}
+.about-txt > p{font-size:clamp(1.15rem,2.2vw,1.45rem);line-height:1.45;max-width:46ch}
+.facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.facts li{border:2px solid var(--text);border-radius:16px;padding:14px 16px;font-weight:600;line-height:1.35}
+.facts li small{display:block;font-weight:400;color:var(--muted);margin-top:4px;font-size:.88rem}
+
+/* ---------- contact ---------- */
+.contact{margin-top:96px;background:var(--hero-bg);color:var(--hero-text);padding-block:72px 40px;position:relative;overflow:hidden}
+.contact h2{font-weight:900;font-stretch:125%;font-size:clamp(3rem,11vw,8rem);line-height:.88;letter-spacing:-.02em}
+.contact .sub{margin-top:18px;max-width:50ch;font-size:1.1rem}
+.links{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.links a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px;border-radius:16px;background:rgba(251,248,236,.1);border:2px solid rgba(251,248,236,.35);color:var(--hero-text);text-decoration:none;transition:background .15s,border-color .15s}
+.links a:hover{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+.links b{font-weight:800;font-stretch:112%;font-size:1.2rem;display:block}
+.links small{font-size:.9rem;opacity:.85}
+.links svg{width:26px;height:26px;flex:none}
+.credits{margin-top:56px;font-size:.78rem;opacity:.75;max-width:90ch}
+.credits a{color:inherit}
+footer{background:var(--hero-bg);color:var(--hero-text);padding-block:0 32px;font-size:.9rem}
+footer .col{border-top:1px solid rgba(251,248,236,.3);padding-top:20px}
+
+/* ---------- small page hero (assignments) ---------- */
+.hero.small .col{display:block;padding-block:36px 48px}
+.hero.small h1{font-size:clamp(2.6rem,7vw,5rem)}
+
+/* ---------- assignments ---------- */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.tools input{flex:1 1 260px;font:inherit;font-size:1rem;color:var(--text);background:transparent;border:2px solid var(--text);border-radius:999px;padding:11px 18px}
+.tools input::placeholder{color:var(--muted)}
+.count{color:var(--muted);font-size:.95rem}
+.alist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.alist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 20px;align-items:center;padding:20px 22px;border-radius:18px;background:var(--panel);color:var(--ink)}
+:root[data-theme="dark"] .alist li{color:var(--text)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .alist li{color:var(--text)}}
+.alist .course{display:inline-block;font-weight:700;font-size:.82rem;background:var(--yellow);color:var(--ink);padding:1px 8px;border-radius:4px;margin-right:8px}
+.alist h3{display:inline;font-size:1.2rem;line-height:1.3;font-weight:800;font-stretch:108%}
+.alist .meta{grid-column:1;opacity:.8;font-size:.95rem}
+.alist .due.soon{color:var(--crimson);font-weight:700;opacity:1}
+.alist .due.past{text-decoration:line-through}
+.alist .open{grid-column:2;grid-row:1 / span 2;display:inline-block;font-weight:700;font-size:.95rem;text-decoration:none;padding:10px 18px;border-radius:999px;background:var(--crimson);color:#FBF8EC;white-space:nowrap}
+.alist li.done{opacity:.55}
+.empty{padding:36px 0;color:var(--muted);max-width:60ch}
+.page-foot{margin-top:80px;padding-block:24px 32px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .hero .col{grid-template-columns:1fr;gap:56px}
+  .hero-photo{justify-self:center;width:min(86%,360px)}
+  .research,.built{grid-template-columns:1fr}
+  .about{grid-template-columns:1fr}
+  .portrait{width:200px}
+}
+@media (max-width:560px){
+  .sticker{left:-24px;top:-36px;width:110px;height:110px}
+  .collage{padding:16px 16px 60px 0}
+  .stats b{font-size:1.5rem}
+  .alist li{grid-template-columns:1fr}
+  .alist .open{grid-column:1;grid-row:auto;justify-self:start;margin-top:6px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .hero h1 .hl,.sticker svg,.ticker-track{animation:none}
+  .btn:hover{transform:none}
+}
+
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23E11A45'/><text x='32' y='43' font-family='Arial Black,Arial' font-weight='900' font-size='28' text-anchor='middle' fill='%23EFECD7'>DH</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="col">
+    <a class="mark" href="index.html"><span>DH</span>Danish Haikel</a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="index.html#topics">Topics</a></li>
+        <li><a href="index.html#research">Research</a></li>
+        <li><a href="index.html#built">Built</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="assignments.html" aria-current="page">Assignments</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero small" aria-labelledby="page-title">
+  <div class="col">
+    <h1 id="page-title"><span class="hl">Assignments</span></h1>
+    <p class="lede">Instructions and briefs for my group assignments. Find yours below and open it.</p>
+  </div>
+</section>
+
+<div class="col" style="padding-top:40px">
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search by title, course or group" aria-label="Search assignments">
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+  <ul class="alist" id="list"></ul>
+  <p class="empty" id="empty" hidden></p>
+</div>
+</main>
+
+<footer>
+  <div class="col">© 2026 Danish Haikel</div>
+</footer>
+
+<script>
+/*
+  HOW TO ADD AN ASSIGNMENT
+  ------------------------
+  1. Copy one block below, paste it inside the [ ], and fill it in.
+  2. "link" can be:
+       a web link        "https://..."
+       a file you upload "my-brief.pdf"   (upload the file to GitHub next to this page)
+       an HTML page      "my-brief.html"
+  3. "due" is written as "YYYY-MM-DD". Leave it "" if there is no due date.
+  4. Save, commit and push to GitHub. The site updates by itself.
+
+  Example (copy this, remove the // at the start of each line):
+
+  // {
+  //   title: "Group 1 report framework",
+  //   course: "Course code",
+  //   group: "Group 1",
+  //   due: "2026-11-28",
+  //   link: "group-1-framework.html",
+  //   note: "Read before our Thursday meeting"
+  // },
+*/
+
+const ASSIGNMENTS = [
+
+]
+
+</script>
+<script>
+const list = document.getElementById('list')
+const empty = document.getElementById('empty')
+const count = document.getElementById('count')
+const q = document.getElementById('q')
+const today = new Date(); today.setHours(0,0,0,0)
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+const parse = d => { if (!d) return null; const t = new Date(d + 'T00:00:00'); return isNaN(t) ? null : t }
+const fmt = t => t.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+
+// Upcoming first (nearest due date on top), then no due date, then past ones.
+const items = (typeof ASSIGNMENTS !== 'undefined' ? ASSIGNMENTS : []).map(a => {
+  const t = parse(a.due)
+  const days = t ? Math.round((t - today) / 86400000) : null
+  return {...a, t, days, past: days !== null && days < 0}
+}).sort((a, b) => {
+  const rank = x => x.past ? 2 : x.t ? 0 : 1
+  if (rank(a) !== rank(b)) return rank(a) - rank(b)
+  if (a.t && b.t) return a.past ? b.t - a.t : a.t - b.t
+  return 0
+})
+
+function dueText(a){
+  if (!a.t) return ''
+  if (a.past) return `<span class="due past">Was due ${fmt(a.t)}</span>`
+  if (a.days === 0) return `<span class="due soon">Due today</span>`
+  if (a.days <= 7) return `<span class="due soon">Due ${fmt(a.t)}, in ${a.days} day${a.days === 1 ? '' : 's'}</span>`
+  return `<span class="due">Due ${fmt(a.t)}</span>`
+}
+
+function render(){
+  const term = q.value.trim().toLowerCase()
+  const shown = items.filter(a => !term || [a.title, a.course, a.group, a.note].join(' ').toLowerCase().includes(term))
+  list.innerHTML = shown.map(a => {
+    const meta = [a.group && esc(a.group), dueText(a), a.note && esc(a.note)].filter(Boolean).join(', ')
+    const ext = /^https?:/i.test(a.link || '')
+    return `<li class="${a.past ? 'done' : ''}">
+      <div>${a.course ? `<span class="course">${esc(a.course)}</span>` : ''}<h3>${esc(a.title)}</h3></div>
+      ${meta ? `<p class="meta">${meta}</p>` : ''}
+      ${a.link ? `<a class="open" href="${esc(a.link)}"${ext ? ' target="_blank" rel="noopener"' : ''}>Open instructions</a>` : ''}
+    </li>`
+  }).join('')
+  count.textContent = items.length ? `${shown.length} of ${items.length}` : ''
+  empty.hidden = shown.length > 0
+  empty.textContent = items.length
+    ? 'No assignment matches that search. Try the course code or your group number.'
+    : 'No assignments posted yet. Check back when your group brief is ready.'
+}
+q.addEventListener('input', render)
+render()
+</script>
+</body>
+</html>
