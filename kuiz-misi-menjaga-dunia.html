@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kuiz Misi Menjaga Dunia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* Layout: projector stage. Left = question stage, right = team scoreboard rail. Single dark look matching the Modul 2 deck. */
+:root{
+  --bg:#06162b; --panel:#0c2445; --panel-2:#123058; --line:#1d3f6e;
+  --fg:#f4f7fb; --muted:#9db3cf; --accent:#22b5f1; --gold:#f5c451;
+  --ok:#36d39a; --bad:#ff6f6f;
+  --a:#22b5f1; --b:#f5c451; --c:#36d39a; --d:#ff7a7a;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;
+  background-image:radial-gradient(1200px 600px at 85% -10%, #0f3a6b 0%, transparent 60%);
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.app{max-width:1400px;margin:0 auto;padding-block:20px 28px;display:flex;flex-direction:column;gap:18px;min-height:100%}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.brand h1{font-family:var(--display);font-weight:800;font-size:clamp(1.2rem,2.2vw,1.7rem);margin:0;line-height:1.1;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.chip{font-family:var(--mono);font-size:.85rem;letter-spacing:.06em;background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:999px;color:var(--muted)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;flex:1}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,36px);display:flex;flex-direction:column;gap:22px;min-width:0}
+.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.rail h2{font-family:var(--display);font-size:1rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.team{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.team.lead{border-color:var(--gold)}
+.team-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.team-name{font-weight:700;font-size:1.05rem;min-width:0;overflow-wrap:anywhere}
+.team-score{font-family:var(--mono);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.team.lead .team-score{color:var(--gold)}
+.picks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pick{border:2px solid var(--line);background:var(--panel-2);border-radius:10px;padding:6px 0;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.pick[data-l="A"].on{background:var(--a);border-color:var(--a);color:#06162b}
+.pick[data-l="B"].on{background:var(--b);border-color:var(--b);color:#06162b}
+.pick[data-l="C"].on{background:var(--c);border-color:var(--c);color:#06162b}
+.pick[data-l="D"].on{background:var(--d);border-color:var(--d);color:#06162b}
+.pick:disabled{cursor:default}
+.team .verdict{font-size:.85rem;color:var(--muted);min-height:1.2em}
+.team .verdict.ok{color:var(--ok)} .team .verdict.bad{color:var(--bad)}
+
+.q-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tag{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.timer{display:flex;align-items:center;gap:10px}
+.timer-num{font-family:var(--mono);font-size:2rem;font-variant-numeric:tabular-nums;min-width:2.2ch;text-align:right}
+.timer-bar{width:160px;max-width:40vw;height:10px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.timer-bar i{display:block;height:100%;background:var(--accent);transition:width .25s linear}
+.timer.low .timer-num{color:var(--bad)} .timer.low .timer-bar i{background:var(--bad)}
+.q-ms{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.2vw,2.6rem);line-height:1.15;margin:0;text-wrap:balance}
+.q-en{font-style:italic;color:var(--muted);font-size:clamp(1.05rem,1.8vw,1.4rem);margin:6px 0 0;text-wrap:balance}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:620px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;gap:14px;align-items:flex-start;background:var(--panel-2);border:2px solid var(--line);border-radius:14px;padding:16px;min-width:0;transition:opacity .3s,border-color .3s;cursor:pointer}
+.opt .l{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.3rem;color:#06162b}
+.opt[data-l="A"] .l{background:var(--a)} .opt[data-l="B"] .l{background:var(--b)}
+.opt[data-l="C"] .l{background:var(--c)} .opt[data-l="D"] .l{background:var(--d)}
+.opt .t{min-width:0}
+.opt .ms{font-weight:700;font-size:clamp(1.05rem,1.7vw,1.35rem)}
+.opt .en{font-style:italic;color:var(--muted);font-size:clamp(.9rem,1.3vw,1.05rem);margin-top:2px}
+.opt.chosen{border-color:var(--gold);box-shadow:0 0 0 4px rgba(245,196,81,.2)}
+.revealed .opt{opacity:.35;cursor:default}
+.revealed .opt.right{opacity:1;border-color:var(--ok);box-shadow:0 0 0 4px rgba(54,211,154,.18)}
+.explain{border-left:4px solid var(--ok);background:rgba(54,211,154,.08);border-radius:0 12px 12px 0;padding:14px 18px}
+.explain p{margin:0} .explain .en{color:var(--muted);font-style:italic;margin-top:6px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:auto}
+.btn{border-radius:12px;padding:14px 22px;font-weight:700;font-size:1.05rem;background:var(--panel-2);border:1px solid var(--line)}
+.btn.primary{background:var(--accent);color:#06162b;border-color:var(--accent)}
+.btn.gold{background:var(--gold);color:#06162b;border-color:var(--gold)}
+.btn small{display:block;font-weight:400;font-size:.78rem;opacity:.8}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+
+/* setup */
+.setup h2{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,3.5vw,2.6rem);margin:0;line-height:1.1;text-wrap:balance}
+.setup .sub{color:var(--muted);margin:6px 0 0;font-style:italic}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.steps{grid-template-columns:1fr}}
+.step{background:var(--panel-2);border-radius:12px;padding:14px;border:1px solid var(--line)}
+.step b{display:block;margin-bottom:4px}
+.step .en{color:var(--muted);font-style:italic;font-size:.9rem;margin-top:4px}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.names label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.names input{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg);font:inherit;font-size:1rem;min-width:0}
+
+/* final */
+.podium{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;align-items:center;gap:14px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.prow.first{border-color:var(--gold)}
+.prow .nm{flex:1;font-weight:700;font-size:1.2rem;min-width:0;overflow-wrap:anywhere}
+.prow .sc{font-family:var(--mono);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.reflect{background:var(--panel-2);border-radius:12px;padding:16px;border:1px dashed var(--accent)}
+.reflect p{margin:0} .reflect .en{color:var(--muted);font-style:italic;margin-top:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+        <circle cx="22" cy="22" r="20" fill="none" stroke="#22b5f1" stroke-width="2.5"/>
+        <ellipse cx="22" cy="22" rx="9" ry="20" fill="none" stroke="#22b5f1" stroke-width="2"/>
+        <path d="M2 22h40M6 12h32M6 32h32" stroke="#22b5f1" stroke-width="2" fill="none"/>
+      </svg>
+      <div>
+        <h1>Mission to Protect the World: UN Quiz</h1>
+        <p>Misi Menjaga Dunia: Kuiz PBB · Module 2 / Modul 2</p>
+      </div>
+    </div>
+    <span class="chip" id="progress">READY / SEDIA</span>
+  </header>
+
+  <div class="main">
+    <section class="stage" id="stage" aria-live="polite"></section>
+    <aside class="rail">
+      <h2>Scoreboard / Papan Markah</h2>
+      <div id="teams" style="display:flex;flex-direction:column;gap:12px"></div>
+      <p class="hint">The facilitator taps the letter or answer that the team raises.<br><i>Fasilitator menekan huruf atau jawapan yang diangkat oleh pasukan.</i></p>
+    </aside>
+  </div>
+</div>
+
+<script>
+{
+// Each question: ms = Malay, en = English. Options o = [Malay, English]. Display order is English first.
+const ALL_QUESTIONS = [
+  {ms:"Berapakah bilangan negara ahli PBB hari ini?", en:"How many member states does the UN have today?",
+   o:[["51","51"],["150","150"],["193","193"],["200","200"]], a:2,
+   x:["PBB bermula dengan 51 negara pengasas pada 1945 dan kini mempunyai 193 negara ahli.","The UN started with 51 founding states in 1945 and now has 193 member states."]},
+  {ms:"Organisasi manakah yang gagal menjaga keamanan sebelum PBB ditubuhkan?", en:"Which organisation failed to keep the peace before the UN was founded?",
+   o:[["ASEAN","ASEAN"],["Liga Bangsa","League of Nations"],["NATO","NATO"],["Kesatuan Eropah","European Union"]], a:1,
+   x:["Liga Bangsa tiada kuasa memaksa dan beberapa kuasa besar tidak menyertainya.","The League of Nations had no power to enforce decisions and several major powers did not join it."]},
+  {ms:"Organ PBB manakah yang bertanggungjawab utama menjaga keamanan dunia?", en:"Which UN organ has primary responsibility for maintaining world peace?",
+   o:[["Perhimpunan Agung","General Assembly"],["Sekretariat","Secretariat"],["Majlis Keselamatan","Security Council"],["Majlis Perwalian","Trusteeship Council"]], a:2,
+   x:["Majlis Keselamatan memikul tanggungjawab utama untuk keamanan dan keselamatan antarabangsa.","The Security Council holds primary responsibility for international peace and security."]},
+  {ms:"Berapakah jumlah ahli Majlis Keselamatan?", en:"How many members does the Security Council have?",
+   o:[["5","5"],["10","10"],["15","15"],["193","193"]], a:2,
+   x:["5 ahli tetap (P5) dan 10 ahli tidak tetap yang dipilih untuk tempoh 2 tahun.","5 permanent members (P5) and 10 non-permanent members elected for 2-year terms."]},
+  {ms:"Bahasa manakah BUKAN bahasa rasmi PBB?", en:"Which language is NOT an official UN language?",
+   o:[["Arab","Arabic"],["Bahasa Melayu","Malay"],["Sepanyol","Spanish"],["Cina","Chinese"]], a:1,
+   x:["Enam bahasa rasmi PBB ialah Arab, Cina, Inggeris, Perancis, Rusia dan Sepanyol.","The six official UN languages are Arabic, Chinese, English, French, Russian and Spanish."]},
+  {ms:"Apakah langkah PERTAMA Majlis Keselamatan apabila berlaku pertikaian?", en:"What is the Security Council's FIRST step when a dispute arises?",
+   o:[["Tindakan ketenteraan","Military action"],["Penyelesaian secara aman","Peaceful settlement"],["Operasi pengaman","Peacekeeping operation"],["Embargo senjata","Arms embargo"]], a:1,
+   x:["Majlis Keselamatan bermula dengan cara paling lembut: siasat, gesa berunding dan cadang penyelesaian.","The Council starts with the gentlest means: investigate, urge talks and recommend a settlement."]},
+  {ms:"Embargo senjata ialah contoh tindakan jenis apakah?", en:"An arms embargo is an example of which type of action?",
+   o:[["Sekatan bukan ketenteraan","Non-military sanction"],["Tindakan ketenteraan","Military action"],["Operasi pengaman","Peacekeeping"],["Undian Perhimpunan Agung","General Assembly vote"]], a:0,
+   x:["Embargo senjata menyekat bekalan senjata tanpa menggunakan kekuatan ketenteraan.","An arms embargo cuts off weapons supplies without using military force."]},
+  {ms:"Resolusi Majlis Keselamatan memerlukan sekurang-kurangnya berapa undi setuju?", en:"A Security Council resolution needs at least how many votes in favour?",
+   o:[["5","5"],["7","7"],["9","9"],["15","15"]], a:2,
+   x:["Sekurang-kurangnya 9 daripada 15 ahli mesti setuju, dan tiada P5 yang mengundi bantah.","At least 9 of 15 members must agree, and no P5 member may vote against."]},
+  {ms:"12 ahli bersetuju, tetapi SATU ahli P5 mengundi menentang. Apakah yang berlaku?", en:"12 members agree, but ONE P5 member votes against. What happens?",
+   o:[["Resolusi lulus","The resolution passes"],["Resolusi gagal kerana veto","It fails because of the veto"],["Undian diulang","The vote is repeated"],["Perhimpunan Agung membuat keputusan","The General Assembly decides"]], a:1,
+   x:["Undi menentang oleh satu ahli P5 ialah veto, dan satu veto sudah cukup untuk menggagalkan resolusi.","A vote against by one P5 member is a veto, and one veto is enough to block a resolution."]},
+  {ms:"Satu ahli P5 BERKECUALI dan 10 ahli lain setuju. Apa berlaku?", en:"One P5 member ABSTAINS and 10 others agree. What happens?",
+   o:[["Resolusi gagal","The resolution fails"],["Resolusi lulus","The resolution passes"],["Dikira sebagai veto","It counts as a veto"],["Undian dibatalkan","The vote is cancelled"]], a:1,
+   x:["Berkecuali bukan veto. Dengan 10 undi setuju dan tiada bantahan P5, resolusi lulus.","Abstaining is not a veto. With 10 votes in favour and no P5 objection, the resolution passes."]},
+  {ms:"Berapa kali Malaysia pernah menjadi ahli tidak tetap Majlis Keselamatan?", en:"How many times has Malaysia served as a non-permanent Security Council member?",
+   o:[["1 kali","Once"],["2 kali","Twice"],["4 kali","4 times"],["Tidak pernah","Never"]], a:2,
+   x:["1965, 1989 hingga 1990, 1999 hingga 2000, dan 2015 hingga 2016.","1965, 1989 to 1990, 1999 to 2000, and 2015 to 2016."]},
+  {ms:"Apakah nama kontingen pengaman Malaysia yang kini bertugas di Lubnan?", en:"What is the name of Malaysia's peacekeeping contingent now serving in Lebanon?",
+   o:[["MALBATT","MALBATT"],["ATM Global","ATM Global"],["Topi Merah","Red Berets"],["UNIMAS","UNIMAS"]], a:0,
+   x:["MALBATT bertugas bersama pasukan pengaman PBB di Lubnan. Malaysia telah menyertai operasi pengaman PBB sejak 1960, bermula di Congo.","MALBATT serves with UN peacekeepers in Lebanon. Malaysia has taken part in UN peacekeeping since 1960, starting in the Congo."]}
+];
+const QUESTIONS = [0, 2, 6, 8, 11].map(i => ALL_QUESTIONS[i]);
+const LETTERS = ["A","B","C","D"];
+const TIME = 20, POINTS = 100;
+const DEFAULT_NAMES = ["Blue Team"];
+
+let S = {screen:"setup", count:1, names:DEFAULT_NAMES.slice(), scores:[], picks:[], qi:0, revealed:false, left:TIME};
+let tick = null, audio = null;
+
+function beep(f, d){
+  try{
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = f; o.type = "triangle"; g.gain.value = .08;
+    o.connect(g); g.connect(audio.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + d);
+    o.stop(audio.currentTime + d);
+  }catch(e){}
+}
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function startTimer(resume){
+  clearInterval(tick);
+  if (!resume) S.left = TIME;
+  tick = setInterval(() => {
+    S.left = Math.max(0, S.left - 1);
+    updateTimer();
+    if (S.left <= 5 && S.left > 0) beep(660, .12);
+    if (S.left === 0){ clearInterval(tick); beep(330, .5); }
+  }, 1000);
+}
+function updateTimer(){
+  const n = $("#tnum"), b = $("#tbar"), w = $("#timer");
+  if (!n) return;
+  n.textContent = S.left;
+  b.style.width = (S.left / TIME * 100) + "%";
+  w.classList.toggle("low", S.left <= 5);
+}
+
+function renderTeams(){
+  const lead = Math.max(...S.scores.slice(0, S.count), 0);
+  const q = QUESTIONS[S.qi];
+  $("#teams").innerHTML = Array.from({length:S.count}, (_, i) => {
+    const pick = S.picks[i];
+    let verdict = "";
+    if (S.screen === "q" && S.revealed){
+      if (pick == null) verdict = '<div class="verdict">No answer / Tiada jawapan</div>';
+      else if (pick === q.a) verdict = `<div class="verdict ok">Correct! / Betul! +${POINTS}</div>`;
+      else verdict = '<div class="verdict bad">Wrong / Salah</div>';
+    }
+    const picks = S.screen === "q" ? `<div class="picks">${LETTERS.map((l, k) =>
+      `<button class="pick ${pick === k ? "on" : ""}" data-l="${l}" data-team="${i}" data-k="${k}" ${S.revealed ? "disabled" : ""} aria-label="${esc(S.names[i])} chooses ${l}">${l}</button>`).join("")}</div>` : "";
+    return `<div class="team ${S.scores[i] === lead && lead > 0 ? "lead" : ""}">
+      <div class="team-top"><span class="team-name">${esc(S.names[i])}</span><span class="team-score">${S.scores[i] || 0}</span></div>
+      ${picks}${verdict}</div>`;
+  }).join("");
+}
+
+function render(){
+  const st = $("#stage");
+  if (S.screen === "setup"){
+    $("#progress").textContent = "READY / SEDIA";
+    st.innerHTML = `<div class="setup" style="display:flex;flex-direction:column;gap:22px">
+      <div><h2>You are the Security Council. Test your knowledge!</h2>
+      <p class="sub">Anda ialah Majlis Keselamatan. Uji pengetahuan anda!</p></div>
+      <div class="steps">
+        <div class="step"><b>1. Get your cards</b>Your team holds cards A, B, C and D.<div class="en">Pasukan anda memegang kad A, B, C dan D.</div></div>
+        <div class="step"><b>2. Discuss for ${TIME} seconds</b>Read the question, discuss it, then raise one card.<div class="en">Baca soalan, berbincang, kemudian angkat satu kad.</div></div>
+        <div class="step"><b>3. Collect points</b>Each correct answer earns ${POINTS} points.<div class="en">Setiap jawapan yang betul mendapat ${POINTS} mata.</div></div>
+      </div>
+      <div class="names"><label for="nm0">Team name / Nama pasukan<input id="nm0" data-i="0" value="${esc(S.names[0])}" maxlength="24"></label></div>
+      <div class="controls"><button class="btn primary" id="start">Start Quiz / Mula Kuiz<small>${QUESTIONS.length} questions / ${QUESTIONS.length} soalan</small></button></div>
+    </div>`;
+    st.querySelectorAll(".names input").forEach(inp => inp.oninput = e => { S.names[0] = e.target.value || DEFAULT_NAMES[0]; renderTeams(); });
+    $("#start").onclick = () => { S.scores = Array(S.count).fill(0); S.qi = 0; goQuestion(); beep(880, .15); };
+    S.scores = S.scores.length ? S.scores : Array(S.count).fill(0);
+    renderTeams(); return;
+  }
+  if (S.screen === "final"){
+    $("#progress").textContent = "FINISHED / TAMAT";
+    const sc = S.scores[0] || 0, max = QUESTIONS.length * POINTS, betul = sc / POINTS;
+    st.innerHTML = `<div style="display:flex;flex-direction:column;gap:20px">
+      <div><span class="tag">Results / Keputusan</span>
+      <h2 class="q-ms" style="margin-top:6px">Congratulations, ${esc(S.names[0])}! You got ${betul} out of ${QUESTIONS.length} correct.</h2>
+      <p class="q-en">Tahniah! Anda menjawab ${betul} daripada ${QUESTIONS.length} soalan dengan betul.</p></div>
+      <div class="podium"><div class="prow first"><span class="nm">${betul} / ${QUESTIONS.length} correct / betul</span><span class="sc">${sc} / ${max}</span></div></div>
+      <div class="reflect"><p><b>Think:</b> If you were a P5 member, would you use your veto to protect civilians in Zantara?</p>
+      <p class="en">Fikir: Jika anda ahli P5, adakah anda akan menggunakan kuasa veto untuk melindungi orang awam di Zantara?</p></div>
+      <div class="controls"><button class="btn" id="again">Play Again / Main Semula</button></div></div>`;
+    $("#again").onclick = () => { S.screen = "setup"; S.scores = []; render(); };
+    renderTeams(); return;
+  }
+  const q = QUESTIONS[S.qi];
+  $("#progress").textContent = `QUESTION / SOALAN ${S.qi + 1} / ${QUESTIONS.length}`;
+  st.innerHTML = `<div class="q-meta"><span class="tag">Question ${S.qi + 1} · Soalan ${S.qi + 1}</span>
+      <div class="timer" id="timer"><div class="timer-bar"><i id="tbar"></i></div><span class="timer-num" id="tnum">${S.left}</span></div></div>
+    <div><h2 class="q-ms">${esc(q.en)}</h2><p class="q-en">${esc(q.ms)}</p></div>
+    <div class="opts ${S.revealed ? "revealed" : ""}">${q.o.map((o, k) =>
+      `<div class="opt ${k === q.a ? "right" : ""} ${S.picks[0] === k ? "chosen" : ""}" data-l="${LETTERS[k]}"><span class="l">${LETTERS[k]}</span><div class="t"><div class="ms">${esc(o[1])}</div>${o[1] !== o[0] ? `<div class="en">${esc(o[0])}</div>` : ""}</div></div>`).join("")}</div>
+    ${S.revealed ? `<div class="explain"><p>${esc(q.x[1])}</p><p class="en">${esc(q.x[0])}</p></div>` : ""}
+    <div class="controls">${S.revealed
+      ? `<button class="btn primary" id="next">${S.qi + 1 < QUESTIONS.length ? "Next Question<small>Soalan Seterusnya</small>" : "See Results<small>Lihat Keputusan</small>"}</button>`
+      : `<button class="btn gold" id="reveal">Reveal Answer<small>Dedahkan Jawapan</small></button><button class="btn" id="reset">Restart Timer<small>Mulakan Semula Masa</small></button>`}</div>`;
+  updateTimer();
+  if (S.revealed) $("#next").onclick = () => { S.qi++; if (S.qi >= QUESTIONS.length){ S.screen = "final"; beep(990, .4); render(); } else goQuestion(); };
+  else { $("#reveal").onclick = reveal; $("#reset").onclick = () => startTimer(false); }
+  renderTeams();
+}
+
+function goQuestion(){ S.screen = "q"; S.revealed = false; S.picks = Array(S.count).fill(null); S.left = TIME; render(); startTimer(false); }
+function reveal(){
+  clearInterval(tick); S.revealed = true;
+  const a = QUESTIONS[S.qi].a;
+  S.picks.forEach((p, i) => { if (p === a) S.scores[i] = (S.scores[i] || 0) + POINTS; });
+  beep(S.picks.some(p => p === a) ? 1046 : 392, .35);
+  render();
+}
+document.addEventListener("click", e => {
+  if (S.screen !== "q" || S.revealed) return;
+  const b = e.target.closest(".pick"), o = e.target.closest(".opt");
+  if (!b && !o) return;
+  const t = b ? +b.dataset.team : 0, k = b ? +b.dataset.k : LETTERS.indexOf(o.dataset.l);
+  S.picks[t] = S.picks[t] === k ? null : k;
+  document.querySelectorAll(".opt").forEach((el, i) => el.classList.toggle("chosen", S.picks[0] === i));
+  renderTeams();
+});
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (S.screen === "q" && (e.key === " " || e.key === "Enter")){ e.preventDefault(); (S.revealed ? $("#next") : $("#reveal"))?.click(); }
+});
+render();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UN Peace Mission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful arcade, bright and confident
+   IDEA: a side-scrolling peacekeeper patrol, checkpoints are quiz gates
+   PICTURE: the game world itself fills the screen
+   COLOUR: UN blue sky, gold coins, navy panels, red danger
+   LAYOUT: full-screen canvas, HUD on top, bilingual modals (English first, Malay second) */
+:root{
+  --un:#009EDB; --navy:#0f1f3d; --navy2:#16294f; --line:#2b4677; --gold:#FFC93C; --gold-d:#d99a00;
+  --ok:#22c08a; --bad:#ff5a6e; --ink:#ffffff; --muted:#a9bddb;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0b2a52;font-family:var(--body);color:var(--ink)}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+#wrap{position:relative;width:100%;height:100%;display:grid;place-items:center;
+  background:radial-gradient(1200px 700px at 50% 0%,#145a9a 0%,#0b2a52 70%)}
+canvas{display:block;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);outline:none}
+
+/* bilingual: English first, Malay second */
+.en,.ms{display:block}
+.ms{font-style:italic;opacity:.75;font-size:.82em;font-weight:700;margin-top:2px}
+.inl .en,.inl .ms{display:inline}
+.inl .ms::before{content:" / "}
+
+/* HUD */
+#hud{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none;z-index:10;flex-wrap:wrap}
+.pill{background:rgba(15,31,61,.86);border:3px solid var(--gold);border-radius:16px;padding:6px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,.25);backdrop-filter:blur(4px)}
+.pill .lbl{font-family:var(--display);font-weight:800;font-size:.78rem;letter-spacing:.06em;color:#7fd3ff;line-height:1.05}
+.pill .lbl .ms{font-size:.85em}
+#hearts{font-size:1.2rem;letter-spacing:2px}
+.num{font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+.gates{display:flex;gap:4px}
+.gates i{width:14px;height:14px;border-radius:4px;background:#2b4677;border:2px solid #3e5f96}
+.gates i.on{background:var(--ok);border-color:#7ff0c4}
+.hud-right{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+#soundBtn{pointer-events:auto;width:44px;height:44px;border-radius:14px;background:rgba(15,31,61,.86);border:3px solid var(--gold);font-size:1.1rem}
+
+/* touch controls */
+#touch{position:absolute;left:14px;right:14px;bottom:14px;display:none;justify-content:space-between;align-items:flex-end;z-index:10;pointer-events:none}
+#touch .grp{display:flex;gap:14px;pointer-events:auto}
+.tbtn{width:70px;height:70px;border-radius:50%;background:rgba(15,31,61,.72);border:3px solid #7fd3ff;font-size:1.6rem;font-weight:800;box-shadow:0 6px 12px rgba(0,0,0,.35);display:grid;place-items:center;line-height:1}
+.tbtn.jump{width:86px;height:86px;background:rgba(255,201,60,.9);border-color:#fff2c4;color:var(--navy);font-family:var(--display);font-size:.85rem}
+.tbtn.jump .ms{font-size:.8em}
+.tbtn.down{transform:scale(.92);background:var(--un)}
+@media (pointer:coarse){#touch{display:flex}}
+
+/* overlays */
+.overlay{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:14px;background:rgba(6,16,34,.72);backdrop-filter:blur(6px);overflow:auto}
+.overlay[hidden]{display:none}
+.card{width:min(560px,100%);background:var(--navy);border:4px solid var(--gold);border-radius:26px;padding:22px;box-shadow:0 10px 0 var(--gold-d),0 24px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.card h1,.card h2{font-family:var(--display);font-weight:800;line-height:1.05;margin:6px 0 8px;color:var(--gold)}
+.card h1{font-size:clamp(1.8rem,5vw,2.5rem)}
+.card h2{font-size:clamp(1.4rem,4vw,1.9rem)}
+.card h1 .ms,.card h2 .ms{font-size:.55em;color:#ffe6a3}
+.card p{margin:0 0 14px;line-height:1.5;color:#dbe7f7;font-weight:700}
+.tag{display:inline-block;font-family:var(--display);font-weight:800;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;background:var(--gold);color:var(--navy);padding:4px 10px;border-radius:999px}
+.tag .ms{font-style:normal;opacity:.8}
+.seal{width:64px;height:64px;border-radius:50%;background:var(--un);display:grid;place-items:center;margin:0 auto 6px;box-shadow:0 5px 0 #006a99}
+.center{text-align:center}
+.howto{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.howto div{background:var(--navy2);border:2px solid var(--line);border-radius:14px;padding:10px;font-weight:800;font-size:.85rem;line-height:1.3;text-align:left}
+.howto b{display:block;font-family:var(--display);font-size:1.4rem;line-height:1;margin-bottom:4px}
+kbd{font-family:var(--display);background:#fff;color:var(--navy);border-radius:6px;padding:0 6px;font-size:.8rem;border-bottom:3px solid #b9c7dd}
+.btn{width:100%;padding:13px 18px;border-radius:16px;background:var(--gold);color:var(--navy);font-family:var(--display);font-weight:800;font-size:1.2rem;line-height:1.1;box-shadow:0 5px 0 var(--gold-d);transition:transform .1s,box-shadow .1s}
+.btn .ms{font-size:.7em;color:#5a4200}
+.btn:active{transform:translateY(4px);box-shadow:none}
+.btn.green{background:var(--ok);box-shadow:0 5px 0 #138a61}
+.btn.green .ms{color:#06402c}
+
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+.qnum{font-family:var(--display);font-weight:800;color:#7fd3ff;font-size:.9rem}
+.qtext{font-family:var(--display);font-weight:800;font-size:clamp(1.1rem,2.6vw,1.35rem);line-height:1.25;margin:0 0 12px}
+.qtext .ms{font-family:var(--body);font-size:.75em;color:var(--muted);opacity:1;margin-top:6px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;background:var(--navy2);border:3px solid var(--line);border-radius:16px;padding:10px 12px;font-weight:800;font-size:.95rem;line-height:1.3;transition:transform .12s,border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:#7fd3ff;transform:translateX(3px)}
+.opt .L{flex:none;width:34px;height:34px;border-radius:10px;background:var(--un);display:grid;place-items:center;font-family:var(--display);font-size:1.1rem}
+.opt .ms{color:var(--muted);opacity:1}
+.opt.right{background:#0f4a3a;border-color:var(--ok)}
+.opt.right .L{background:var(--ok)}
+.opt.wrong{background:#4a1626;border-color:var(--bad);animation:shake .35s}
+.opt.wrong .L{background:var(--bad)}
+.opt:disabled{cursor:default}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{margin-top:12px;border-radius:16px;padding:12px 14px;font-weight:700;line-height:1.45}
+.fb[hidden]{display:none}
+.fb b{font-family:var(--display);font-size:1.05rem}
+.fb.good{background:#0c3b2f;border:3px solid var(--ok)}
+.fb.bad{background:#3d1220;border:3px solid var(--bad)}
+.fb .ms{color:#c8d6ea}
+#qNext{margin-top:12px}
+#qNext[hidden]{display:none}
+
+/* results */
+.stars{font-size:2.6rem;letter-spacing:6px;margin:4px 0 10px}
+.stars .off{filter:grayscale(1);opacity:.3}
+.stats{background:var(--navy2);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:0 0 14px;display:grid;gap:8px}
+.stats div{display:flex;justify-content:space-between;gap:10px;font-weight:800}
+.stats div span:last-child{font-family:var(--display);color:var(--gold);font-variant-numeric:tabular-nums}
+.stats .total{border-top:2px solid var(--line);padding-top:8px;font-size:1.15rem}
+.stats .total span:last-child{color:var(--ok)}
+.left{text-align:left}
+
+@media (max-width:560px){.howto{grid-template-columns:1fr}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" tabindex="0" aria-label="Game world / Dunia permainan"></canvas>
+
+  <div id="hud">
+    <div class="pill">
+      <div class="lbl"><span class="en">UN OFFICER</span><span class="ms">PEGAWAI PBB</span></div>
+      <div id="hearts">❤️❤️❤️</div>
+    </div>
+    <div class="hud-right">
+      <div class="pill">
+        <div class="lbl"><span class="en">GATES</span><span class="ms">PINTU</span></div>
+        <div class="gates" id="gateDots"></div>
+      </div>
+      <div class="pill">
+        <div class="lbl"><span class="en">COINS</span><span class="ms">SYILING</span></div>
+        <div class="num" id="coinText">0</div>
+      </div>
+      <div class="pill">
+        <div class="lbl"><span class="en">SCORE</span><span class="ms">MARKAH</span></div>
+        <div class="num" id="scoreText">0</div>
+      </div>
+      <button id="soundBtn" aria-label="Sound on / Bunyi dipasang" aria-pressed="true">🔊</button>
+    </div>
+  </div>
+
+  <div id="touch">
+    <div class="grp">
+      <button class="tbtn" id="tLeft" aria-label="Move left / Gerak kiri">◀</button>
+      <button class="tbtn" id="tRight" aria-label="Move right / Gerak kanan">▶</button>
+    </div>
+    <div class="grp">
+      <button class="tbtn jump" id="tJump"><span><span class="en">JUMP</span><span class="ms">LOMPAT</span></span></button>
+    </div>
+  </div>
+
+  <!-- Start -->
+  <div class="overlay" id="startScreen">
+    <div class="card center">
+      <div class="seal"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="#fff" stroke-width="2.5"/><ellipse cx="20" cy="20" rx="7" ry="16" fill="none" stroke="#fff" stroke-width="2"/><path d="M4 20h32M7 12h26M7 28h26" stroke="#fff" stroke-width="2"/></svg></div>
+      <span class="tag inl"><span class="en">Arms Control Mission</span><span class="ms">Misi Kawalan Senjata</span></span>
+      <h1><span class="en">UN Peace Mission</span><span class="ms">Misi Keamanan PBB</span></h1>
+      <p><span class="en">Guide the UN officer across the map. Collect gold coins, stomp on smuggled weapons crates, and answer 7 quiz questions at the checkpoint gates to stop illegal arms and ISIL (Da'esh).</span><span class="ms">Bawa Pegawai PBB merentasi peta. Kutip syiling emas, pijak peti senjata seludup, dan jawab 7 soalan kuiz di pintu sekatan untuk menyekat senjata haram dan ISIL (Da'esh).</span></p>
+      <div class="howto">
+        <div><b>⬅️➡️</b><span class="en"><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> to move</span><span class="ms">untuk bergerak</span></div>
+        <div><b>⬆️</b><span class="en"><kbd>Space</kbd> <kbd>W</kbd> <kbd>↑</kbd> to jump. Hold for a higher jump.</span><span class="ms">untuk melompat. Tahan untuk lompatan lebih tinggi.</span></div>
+        <div><b>📦</b><span class="en">Jump on crates to seize them. Touching them from the side hurts.</span><span class="ms">Pijak peti untuk merampasnya. Terkena dari sisi akan mencederakan.</span></div>
+      </div>
+      <button class="btn" id="startBtn"><span class="en">START MISSION ▶</span><span class="ms">MULA MISI</span></button>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="overlay" id="quizScreen" hidden>
+    <div class="card left" role="dialog" aria-labelledby="qText">
+      <div class="qhead">
+        <span class="tag inl"><span class="en">UN Checkpoint</span><span class="ms">Sekatan PBB</span></span>
+        <span class="qnum" id="qNum"></span>
+      </div>
+      <div class="qtext" id="qText"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="fb" id="qFb" hidden role="status"></div>
+      <button class="btn green" id="qNext" hidden><span class="en">Continue ➔</span><span class="ms">Teruskan Perjalanan</span></button>
+    </div>
+  </div>
+
+  <!-- Victory -->
+  <div class="overlay" id="winScreen" hidden>
+    <div class="card center">
+      <span class="tag inl"><span class="en">Mission Complete</span><span class="ms">Misi Selesai</span></span>
+      <h2><span class="en">Peace Mission Accomplished!</span><span class="ms">Misi Keamanan Berjaya!</span></h2>
+      <div class="stars" id="stars"></div>
+      <p><span class="en">Well done! You enforced the UN arms embargo, cut off ISIL (Da'esh) and helped keep the world safe.</span><span class="ms">Tahniah! Anda telah menguatkuasakan sekatan senjata PBB, menyekat ISIL (Da'esh) dan membantu menjaga keamanan dunia.</span></p>
+      <div class="stats left">
+        <div><span class="inl"><span class="en">🪙 Coins collected</span><span class="ms">Syiling dikutip</span></span><span id="sCoins">0</span></div>
+        <div><span class="inl"><span class="en">📦 Crates seized</span><span class="ms">Peti dirampas</span></span><span id="sCrates">0</span></div>
+        <div><span class="inl"><span class="en">✅ Correct on first try</span><span class="ms">Betul pada cubaan pertama</span></span><span id="sFirst">0</span></div>
+        <div class="total"><span class="inl"><span class="en">Final score</span><span class="ms">Markah akhir</span></span><span id="sScore">0</span></div>
+      </div>
+      <button class="btn green" id="againBtn"><span class="en">PLAY AGAIN 🔄</span><span class="ms">MAIN SEMULA</span></button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div class="overlay" id="loseScreen" hidden>
+    <div class="card center">
+      <span class="tag inl"><span class="en">Mission Report</span><span class="ms">Laporan Misi</span></span>
+      <h2><span class="en">Mission Failed</span><span class="ms">Misi Gagal</span></h2>
+      <p><span class="en">You ran out of lives. Regroup and try the UN inspection again!</span><span class="ms">Nyawa anda sudah habis. Bersedia semula dan cuba operasi pemeriksaan PBB sekali lagi!</span></p>
+      <button class="btn" id="retryBtn"><span class="en">TRY AGAIN 🔄</span><span class="ms">CUBA SEMULA</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+{
+// ---------- QUIZ DATA (English first, Malay second) ----------
+const QUIZ = [
+  {en:"What is the main role of the UN Security Council in international security?",
+   ms:"Apakah peranan utama Majlis Keselamatan Pertubuhan Bangsa-Bangsa Bersatu (PBB) dalam isu keselamatan antarabangsa?",
+   opts:[
+    {en:"To maintain international peace and security",ms:"Memastikan keamanan dan keselamatan antarabangsa terjamin",ok:true},
+    {en:"To control the world's stock markets",ms:"Mengawal pasaran saham dunia"},
+    {en:"To set the global price of crude oil",ms:"Menentukan harga minyak mentah global"},
+    {en:"To train the army of one particular country",ms:"Melatih tentera untuk sesebuah negara tertentu"}],
+   exp:{en:"The UN Security Council has primary responsibility for maintaining international peace and security, including by imposing arms embargoes.",
+        ms:"Majlis Keselamatan PBB memikul tanggungjawab utama untuk mengekalkan keamanan dan keselamatan antarabangsa, termasuk dengan mengenakan sekatan senjata."}},
+  {en:"What is the main purpose of an arms embargo against terrorist groups such as ISIL (Da'esh)?",
+   ms:"Apakah tujuan utama sekatan senjata (arms embargo) terhadap kumpulan pengganas seperti ISIL (Da'esh)?",
+   opts:[
+    {en:"To raise the price of weapons worldwide",ms:"Menaikkan harga senjata api di pasaran dunia"},
+    {en:"To stop terrorists from getting weapons and military equipment",ms:"Menyekat pengganas daripada memperoleh senjata dan peralatan ketenteraan",ok:true},
+    {en:"To encourage open arms trade",ms:"Menggalakkan perdagangan senjata secara terbuka"},
+    {en:"To block humanitarian aid from conflict zones",ms:"Menghalang bantuan kemanusiaan daripada memasuki zon konflik"}],
+   exp:{en:"An arms embargo bans the supply, sale and transfer of weapons and military equipment to terrorist groups.",
+        ms:"Sekatan senjata melarang pembekalan, penjualan dan pemindahan senjata serta peralatan ketenteraan kepada kumpulan pengganas."}},
+  {en:"Why are international cooperation and intelligence sharing important in fighting terrorism?",
+   ms:"Mengapakah kerjasama antarabangsa dan perkongsian maklumat perisikan penting dalam membanteras keganasan?",
+   opts:[
+    {en:"So that state secrets can be sold",ms:"Supaya rahsia negara dapat dijual"},
+    {en:"So that countries can act together to stop threats",ms:"Supaya negara dapat bertindak secara kolektif untuk menyekat ancaman",ok:true},
+    {en:"To reduce the number of UN members",ms:"Untuk mengurangkan bilangan negara anggota PBB"},
+    {en:"So that each country fights alone",ms:"Supaya setiap negara berperang secara bersendirian"}],
+   exp:{en:"International cooperation lets countries share intelligence effectively and tighten border controls to stop terrorists from moving.",
+        ms:"Kerjasama antarabangsa membolehkan perkongsian maklumat perisikan yang berkesan dan kawalan sempadan yang ketat untuk menyekat pergerakan pengganas."}},
+  {en:"What does 'disarmament' mean in UN arms control?",
+   ms:"Apakah maksud penyahsenjataan (disarmament) dalam konteks kawalan senjata PBB?",
+   opts:[
+    {en:"Reducing or eliminating weapons for the sake of peace",ms:"Mengurangkan atau menghapuskan senjata demi keamanan",ok:true},
+    {en:"Buying new weapons to strengthen the army",ms:"Membeli senjata baharu untuk mengukuhkan angkatan tentera"},
+    {en:"Selling old weapons to neighbouring countries",ms:"Menjual senjata lama kepada negara jiran"},
+    {en:"Storing chemical weapons in secret places",ms:"Menyimpan senjata kimia di kawasan rahsia"}],
+   exp:{en:"Disarmament means reducing, limiting or eliminating weapons, including weapons of mass destruction, to lower the risk of war.",
+        ms:"Penyahsenjataan bermaksud mengurangkan, mengehadkan atau menghapuskan senjata, termasuk senjata pemusnah besar-besaran, untuk mengurangkan risiko peperangan."}},
+  {en:"How do UN Security Council decisions bind member states under the UN Charter?",
+   ms:"Bagaimanakah keputusan Majlis Keselamatan PBB mengikat negara anggota di bawah Piagam PBB?",
+   opts:[
+    {en:"Members may choose to obey or ignore them",ms:"Negara anggota bebas memilih untuk mematuhi atau mengabaikannya"},
+    {en:"All members must accept and carry out the decisions",ms:"Semua negara anggota wajib menerima dan melaksanakan keputusan tersebut",ok:true},
+    {en:"They apply only to poor countries",ms:"Keputusan itu hanya terpakai kepada negara miskin"},
+    {en:"They are only suggestions with no enforcement",ms:"Keputusan itu hanya cadangan tanpa sebarang penguatkuasaan"}],
+   exp:{en:"Under Article 25 of the UN Charter, member states agree to accept and carry out the decisions of the Security Council.",
+        ms:"Di bawah Perkara 25 Piagam PBB, negara anggota bersetuju untuk menerima dan melaksanakan keputusan Majlis Keselamatan."}},
+  {en:"What is the role of the rule of law in dealing with terrorism?",
+   ms:"Apakah peranan kedaulatan undang-undang (rule of law) dalam menangani ancaman keganasan?",
+   opts:[
+    {en:"It allows military action without any conditions",ms:"Membenarkan tindakan ketenteraan tanpa sebarang syarat"},
+    {en:"It makes sure counter-terrorism respects human rights",ms:"Memastikan usaha membanteras keganasan mematuhi hak asasi manusia",ok:true},
+    {en:"It allows anyone to be detained without evidence",ms:"Membenarkan penahanan sesiapa sahaja tanpa bukti"},
+    {en:"It ignores a country's sovereignty in conflict zones",ms:"Mengabaikan kedaulatan sesebuah negara di zon konflik"}],
+   exp:{en:"The rule of law makes sure that the fight against terrorism is fair, just and in line with international human rights standards.",
+        ms:"Kedaulatan undang-undang memastikan usaha memerangi keganasan dijalankan secara adil, saksama dan mematuhi standard hak asasi manusia antarabangsa."}},
+  {en:"In the case of ISIL (Da'esh), what did the UN do to cut off the terrorists' money?",
+   ms:"Dalam kes ISIL (Da'esh), apakah langkah PBB untuk menyekat keupayaan kewangan pengganas?",
+   opts:[
+    {en:"Froze assets and banned travel for linked individuals",ms:"Membekukan aset dan mengenakan larangan perjalanan terhadap individu berkaitan",ok:true},
+    {en:"Printed a new currency for the world market",ms:"Menerbitkan mata wang baharu untuk pasaran dunia"},
+    {en:"Gave special loans to rebel groups",ms:"Memberi pinjaman khas kepada kumpulan pemberontak"},
+    {en:"Closed every bank in West Asia",ms:"Menutup semua bank di Asia Barat"}],
+   exp:{en:"The UN imposed targeted financial sanctions, such as asset freezes, to cut off the money terrorist groups need to operate.",
+        ms:"PBB mengenakan sekatan kewangan bersasar seperti pembekuan aset untuk memutuskan dana operasi kumpulan pengganas."}}
+];
+
+// ---------- WORLD ----------
+const VW=800, VH=450, WORLD_W=5200, STEP=1000/60;
+const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const bi=(en,ms)=>`<span class="en">${esc(en)}</span><span class="ms">${esc(ms)}</span>`;
+
+const PLATFORMS=[
+  {x:0,y:400,w:700,h:50,t:'grass'},{x:780,y:400,w:600,h:50,t:'grass'},{x:1460,y:400,w:550,h:50,t:'grass'},
+  {x:2090,y:400,w:550,h:50,t:'grass'},{x:2720,y:400,w:550,h:50,t:'grass'},{x:3350,y:400,w:550,h:50,t:'grass'},
+  {x:3980,y:400,w:550,h:50,t:'grass'},{x:4610,y:400,w:590,h:50,t:'grass'},
+  {x:240,y:310,w:100,h:24,t:'brick'},{x:420,y:280,w:120,h:24,t:'brick'},
+  {x:880,y:310,w:100,h:24,t:'brick'},{x:1080,y:270,w:120,h:24,t:'brick'},
+  {x:1560,y:310,w:100,h:24,t:'brick'},{x:1740,y:270,w:120,h:24,t:'brick'},
+  {x:2180,y:310,w:100,h:24,t:'brick'},{x:2360,y:270,w:120,h:24,t:'brick'},
+  {x:2810,y:310,w:100,h:24,t:'brick'},{x:2990,y:270,w:120,h:24,t:'brick'},
+  {x:3440,y:310,w:100,h:24,t:'brick'},{x:3620,y:270,w:120,h:24,t:'brick'},
+  {x:4070,y:310,w:100,h:24,t:'brick'},{x:4250,y:270,w:120,h:24,t:'brick'},
+  {x:4700,y:310,w:120,h:24,t:'brick'}
+];
+const HAZARDS=[700,1380,2010,2640,3270,3900,4530].map(x=>({x,y:430,w:80,h:20}));
+const COIN_POS=[[260,270],[460,240],[910,270],[1120,230],[1590,270],[1780,230],[2210,270],[2400,230],[2840,270],[3030,230],[3470,270],[3660,230],[4100,270],[4290,230],[4740,270]];
+const GATE_X=[620,1300,1940,2570,3200,3830,4460];
+const CRATE_RANGES=[[820,1240],[1480,1900],[2110,2540],[2740,3170],[3370,3800],[4000,4420],[4640,4950]];
+const FLAG={x:5020,y:200,w:12,h:200};
+
+let coins, gates, crates, particles, floats, player, state='START', activeGate=null;
+let cameraX=0, tick=0, shake=0, soundOn=true;
+let stats={coins:0,crates:0,first:0};
+const keys={left:false,right:false,jumpHeld:false};
+let jumpBuffer=0;
+
+function reset(){
+  player={x:80,y:300,w:32,h:48,vx:0,vy:0,speed:4.5,jump:-13.5,g:.55,grounded:false,coyote:0,lives:3,score:0,inv:0,face:1,walk:0};
+  coins=COIN_POS.map(([x,y])=>({x,y,got:false}));
+  gates=GATE_X.map((x,i)=>({id:i+1,x,y:250,w:40,h:150,q:i,cleared:false,tries:0,open:0}));
+  crates=CRATE_RANGES.map(([a,b],i)=>({x:a+40+(i*37)%(b-a-120),y:372,w:30,h:28,min:a,max:b,dir:i%2?1:-1,sp:1.1+(i%3)*.25,alive:true,squash:0}));
+  particles=[]; floats=[]; stats={coins:0,crates:0,first:0}; cameraX=0; shake=0;
+  keys.left=keys.right=keys.jumpHeld=false; jumpBuffer=0;
+  updateHUD();
+}
+
+// ---------- AUDIO ----------
+let ac=null;
+function initAudio(){ try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume(); }catch(e){} }
+function tone(type,f1,f2,dur,vol=.15,delay=0){
+  if(!ac||!soundOn) return;
+  try{
+    const t=ac.currentTime+delay, o=ac.createOscillator(), g=ac.createGain();
+    o.type=type; o.frequency.setValueAtTime(f1,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur+.02);
+  }catch(e){}
+}
+const sfx={
+  jump:()=>tone('square',160,620,.15,.1),
+  coin:()=>{tone('sine',988,null,.08,.18);tone('sine',1319,null,.25,.18,.08)},
+  stomp:()=>{tone('square',400,90,.15,.18);tone('triangle',800,null,.08,.1,.05)},
+  hurt:()=>tone('sawtooth',320,70,.25,.22),
+  right:()=>[523,659,784,1047].forEach((f,i)=>tone('triangle',f,null,.16,.18,i*.08)),
+  wrong:()=>tone('sawtooth',180,100,.28,.2),
+  gate:()=>tone('triangle',330,660,.25,.12),
+  win:()=>[523,659,784,1047,1319].forEach((f,i)=>tone('square',f,null,i===4?.5:.16,.14,i*.17)),
+  lose:()=>[392,330,262,196].forEach((f,i)=>tone('triangle',f,null,.25,.16,i*.2))
+};
+
+// ---------- INPUT ----------
+const isLeft=k=>k==='ArrowLeft'||k==='a'||k==='A';
+const isRight=k=>k==='ArrowRight'||k==='d'||k==='D';
+const isJump=k=>k==='ArrowUp'||k==='w'||k==='W'||k===' ';
+window.addEventListener('keydown',e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+  if(state==='QUIZ'){
+    const n='1234'.indexOf(e.key); if(n>=0){ const b=$('qOpts').children[n]; if(b&&!b.disabled) b.click(); }
+    if(e.key==='Enter'&&!$('qNext').hidden) $('qNext').click();
+    return;
+  }
+  if(state!=='PLAYING') return;
+  initAudio();
+  if(isLeft(e.key)) keys.left=true;
+  if(isRight(e.key)) keys.right=true;
+  if(isJump(e.key)&&!e.repeat){ keys.jumpHeld=true; jumpBuffer=8; }
+});
+window.addEventListener('keyup',e=>{
+  if(isLeft(e.key)) keys.left=false;
+  if(isRight(e.key)) keys.right=false;
+  if(isJump(e.key)) keys.jumpHeld=false;
+});
+window.addEventListener('blur',()=>{keys.left=keys.right=keys.jumpHeld=false});
+function hold(id,on,off){
+  const el=$(id);
+  el.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();el.classList.add('down');on();});
+  ['pointerup','pointerleave','pointercancel'].forEach(t=>el.addEventListener(t,()=>{el.classList.remove('down');off();}));
+}
+hold('tLeft',()=>keys.left=true,()=>keys.left=false);
+hold('tRight',()=>keys.right=true,()=>keys.right=false);
+hold('tJump',()=>{keys.jumpHeld=true;jumpBuffer=8},()=>keys.jumpHeld=false);
+
+// ---------- EFFECTS ----------
+function burst(x,y,colors,n=14,speed=4){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=speed*(.4+Math.random());
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,life:40+Math.random()*20,max:60,c:colors[i%colors.length],r:2+Math.random()*3});
+  }
+}
+function floatText(x,y,txt,c='#FFC93C'){ floats.push({x,y,txt,c,life:60}); }
+
+// ---------- UPDATE ----------
+const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function update(){
+  tick++;
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life--}); particles=particles.filter(p=>p.life>0);
+  floats.forEach(f=>{f.y-=.8;f.life--}); floats=floats.filter(f=>f.life>0);
+  gates.forEach(g=>{ if(g.cleared&&g.open<1) g.open=Math.min(1,g.open+.04) });
+  if(shake>0) shake--;
+  if(state!=='PLAYING') return;
+
+  const P=player;
+  if(P.inv>0) P.inv--;
+  P.vx = keys.left?-P.speed : keys.right?P.speed : 0;
+  if(P.vx) { P.face=P.vx>0?1:-1; P.walk+=.25; } else P.walk=0;
+
+  // jump with buffer, coyote time and variable height
+  if(P.grounded) P.coyote=6; else if(P.coyote>0) P.coyote--;
+  if(jumpBuffer>0) jumpBuffer--;
+  if(jumpBuffer>0&&P.coyote>0){ P.vy=P.jump; P.grounded=false; P.coyote=0; jumpBuffer=0; sfx.jump(); burst(P.x+P.w/2,P.y+P.h,['#ffffff','#d7f0ff'],6,2); }
+  if(!keys.jumpHeld&&P.vy<-4) P.vy=-4;
+
+  P.vy=Math.min(P.vy+P.g,14);
+  P.x+=P.vx; P.y+=P.vy;
+  if(P.x<0) P.x=0;
+
+  const wasGrounded=P.grounded; P.grounded=false;
+  for(const p of PLATFORMS){
+    if(P.x+P.w>p.x&&P.x<p.x+p.w&&P.y+P.h>=p.y&&P.y+P.h<=p.y+p.h+P.vy&&P.vy>=0){
+      P.grounded=true; P.vy=0; P.y=p.y-P.h;
+    }
+  }
+  if(P.grounded&&!wasGrounded) burst(P.x+P.w/2,P.y+P.h,['#ffffff','#e5f6d8'],5,1.5);
+
+  // gates
+  for(const g of gates){
+    if(!g.cleared&&overlap(P,g)){ P.x=g.x-P.w-2; P.vx=0; keys.left=keys.right=false; openQuiz(g); return; }
+  }
+
+  // coins
+  for(const c of coins){
+    if(!c.got&&Math.hypot(P.x+P.w/2-c.x,P.y+P.h/2-c.y)<30){
+      c.got=true; P.score+=100; stats.coins++; sfx.coin();
+      burst(c.x,c.y,['#FFC93C','#fff3b0','#ffffff'],12,3); floatText(c.x,c.y-14,'+100');
+      updateHUD();
+    }
+  }
+
+  // crates
+  for(const k of crates){
+    if(!k.alive){ if(k.squash>0) k.squash--; continue; }
+    k.x+=k.dir*k.sp;
+    if(k.x<k.min){k.x=k.min;k.dir=1} if(k.x+k.w>k.max){k.x=k.max-k.w;k.dir=-1}
+    if(overlap(P,k)){
+      if(P.vy>0&&P.y+P.h-k.y<18){
+        k.alive=false; k.squash=30; P.vy=keys.jumpHeld?-12:-8; P.score+=150; stats.crates++;
+        sfx.stomp(); burst(k.x+k.w/2,k.y+6,['#b07a3c','#7a4f22','#ff5a6e'],16,4); floatText(k.x+k.w/2,k.y-10,'+150 SEIZED');
+        updateHUD();
+      }else if(P.inv===0){
+        hurt(P.x+P.w/2<k.x+k.w/2?-1:1);
+      }
+    }
+  }
+
+  // hazards and pits
+  if(P.inv===0){
+    for(const h of HAZARDS){ if(overlap(P,h)){ hurt(0,true); break; } }
+    if(P.y>VH+60) hurt(0,true);
+  }
+  if(state!=='PLAYING') return;
+
+  // finish
+  if(P.x+P.w>FLAG.x&&P.x<FLAG.x+FLAG.w+20&&P.y+P.h>FLAG.y) win();
+
+  const target=P.x-VW/3;
+  cameraX+= (target-cameraX)*.15;
+  cameraX=Math.max(0,Math.min(WORLD_W-VW,cameraX));
+}
+
+function hurt(dir,pit=false){
+  const P=player;
+  P.lives--; sfx.hurt(); shake=14; updateHUD();
+  burst(P.x+P.w/2,P.y+P.h/2,['#ff5a6e','#ffffff'],12,3);
+  if(P.lives<=0){ lose(); return; }
+  P.inv=90; P.vy=-7;
+  if(dir) P.x+=dir*30;
+  if(pit){ P.x=Math.max(80,P.x-280); P.y=300; P.vy=0; }
+}
+
+// ---------- RENDER ----------
+let RS=1;
+function resize(){
+  const scale=Math.min(innerWidth/VW,innerHeight/VH);
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.style.width=Math.floor(VW*scale)+'px'; canvas.style.height=Math.floor(VH*scale)+'px';
+  canvas.width=Math.round(VW*scale*dpr); canvas.height=Math.round(VH*scale*dpr);
+  RS=scale*dpr;
+}
+window.addEventListener('resize',resize);
+
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h); }
+
+function drawBackground(){
+  const sky=ctx.createLinearGradient(0,0,0,VH);
+  sky.addColorStop(0,'#2b9be6'); sky.addColorStop(.6,'#8fd4ff'); sky.addColorStop(1,'#d9f2ff');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,VW,VH);
+  // sun
+  const sx=640-cameraX*.02;
+  const sg=ctx.createRadialGradient(sx,80,10,sx,80,90);
+  sg.addColorStop(0,'rgba(255,244,190,1)'); sg.addColorStop(.35,'rgba(255,220,120,.6)'); sg.addColorStop(1,'rgba(255,220,120,0)');
+  ctx.fillStyle=sg; ctx.fillRect(sx-90,-10,180,180);
+  ctx.fillStyle='#fff6c9'; ctx.beginPath(); ctx.arc(sx,80,26,0,Math.PI*2); ctx.fill();
+  // far mountains
+  ctx.fillStyle='#7bb8e6';
+  for(let i=-1;i<10;i++){
+    const x=i*360-((cameraX*.12)%360);
+    ctx.beginPath(); ctx.moveTo(x,330); ctx.lineTo(x+120,190); ctx.lineTo(x+200,260); ctx.lineTo(x+280,170); ctx.lineTo(x+400,330); ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,255,255,.55)';
+  for(let i=-1;i<10;i++){
+    const x=i*360-((cameraX*.12)%360);
+    ctx.beginPath(); ctx.moveTo(x+280,170); ctx.lineTo(x+258,200); ctx.lineTo(x+272,196); ctx.lineTo(x+284,206); ctx.lineTo(x+300,196); ctx.fill();
+  }
+  // city skyline with a tall UN style tower
+  for(let i=-1;i<8;i++){
+    const base=i*520-((cameraX*.25)%520);
+    ctx.fillStyle='#5f9bcc';
+    [[0,60,90],[70,40,130],[120,50,70],[180,36,110],[230,60,80],[300,44,150],[350,70,95],[430,50,120]].forEach(([dx,w,h])=>ctx.fillRect(base+dx,360-h,w,h));
+    if(i%2===0){
+      ctx.fillStyle='#4f88b9'; ctx.fillRect(base+250,150,46,210);
+      ctx.fillStyle='rgba(255,255,255,.35)';
+      for(let r=0;r<12;r++) ctx.fillRect(base+254,158+r*16,38,5);
+      ctx.fillStyle='#009EDB'; ctx.fillRect(base+271,118,3,32); ctx.fillRect(base+274,118,20,13);
+    }
+  }
+  // clouds
+  for(let i=0;i<9;i++){
+    const x=((i*300-cameraX*.3-tick*.15)%(VW+400)+VW+400)%(VW+400)-150, y=40+(i%3)*30;
+    ctx.fillStyle='rgba(255,255,255,.92)';
+    ctx.beginPath(); ctx.arc(x,y,20,0,Math.PI*2); ctx.arc(x+22,y-12,26,0,Math.PI*2); ctx.arc(x+48,y,22,0,Math.PI*2); ctx.arc(x+24,y+6,22,0,Math.PI*2); ctx.fill();
+  }
+  // near hills
+  for(let i=-1;i<6;i++){
+    const x=i*420-((cameraX*.5)%420);
+    ctx.fillStyle='#2fae5e'; ctx.beginPath(); ctx.arc(x+150,470,170,Math.PI,0); ctx.fill();
+    ctx.fillStyle='#4cc97a'; ctx.beginPath(); ctx.arc(x+128,470,135,Math.PI,0); ctx.fill();
+    ctx.fillStyle='#1e8a47'; [[90,380],[150,360],[200,390]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(x+dx,dy,4,0,Math.PI*2);ctx.fill()});
+  }
+}
+
+function drawPlatforms(){
+  for(const p of PLATFORMS){
+    if(p.x+p.w<cameraX-20||p.x>cameraX+VW+20) continue;
+    if(p.t==='grass'){
+      ctx.fillStyle='#8a5a2b'; ctx.fillRect(p.x,p.y+10,p.w,p.h);
+      ctx.fillStyle='#6f4520';
+      for(let bx=p.x+8;bx<p.x+p.w;bx+=28){ ctx.fillRect(bx,p.y+22+((bx/28)%2)*10,8,5); }
+      ctx.fillStyle='#2fae5e'; rr(p.x,p.y,p.w,14,6); ctx.fill();
+      ctx.fillStyle='#5fd88a'; ctx.fillRect(p.x+4,p.y+2,p.w-8,4);
+      ctx.fillStyle='#2fae5e';
+      for(let bx=p.x+6;bx<p.x+p.w-6;bx+=18){ ctx.beginPath(); ctx.moveTo(bx,p.y+14); ctx.lineTo(bx+5,p.y+20); ctx.lineTo(bx+10,p.y+14); ctx.fill(); }
+    }else{
+      ctx.fillStyle='rgba(0,0,0,.18)'; rr(p.x+4,p.y+6,p.w,p.h,5); ctx.fill();
+      ctx.fillStyle='#c9681f'; rr(p.x,p.y,p.w,p.h,5); ctx.fill();
+      ctx.fillStyle='#8a3f10';
+      ctx.fillRect(p.x,p.y+11,p.w,2);
+      for(let bx=p.x+20;bx<p.x+p.w;bx+=20){ ctx.fillRect(bx,p.y,2,11); ctx.fillRect(bx-10,p.y+13,2,11); }
+      ctx.fillStyle='#ffb067'; ctx.fillRect(p.x+3,p.y+2,p.w-6,3);
+    }
+  }
+  for(const h of HAZARDS){
+    ctx.fillStyle='#173356'; ctx.fillRect(h.x,400,h.w,50);
+    ctx.fillStyle='#c4cfdf';
+    for(let i=0;i<8;i++){ ctx.beginPath(); ctx.moveTo(h.x+i*10,450); ctx.lineTo(h.x+i*10+5,h.y); ctx.lineTo(h.x+i*10+10,450); ctx.fill(); }
+    ctx.fillStyle='#ff5a6e';
+    for(let i=0;i<8;i++){ ctx.beginPath(); ctx.moveTo(h.x+i*10+3,h.y+8); ctx.lineTo(h.x+i*10+5,h.y); ctx.lineTo(h.x+i*10+7,h.y+8); ctx.fill(); }
+  }
+}
+
+function drawCoins(){
+  for(const c of coins){
+    if(c.got) continue;
+    const bob=Math.sin(tick*.08+c.x)*3, sx=Math.abs(Math.sin(tick*.06+c.x*.01));
+    ctx.save(); ctx.translate(c.x,c.y+bob); ctx.scale(Math.max(.15,sx),1);
+    ctx.fillStyle='#d99a00'; ctx.beginPath(); ctx.arc(0,0,13,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFC93C'; ctx.beginPath(); ctx.arc(0,0,10.5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff3b0'; ctx.fillRect(-2,-6,4,12);
+    ctx.restore();
+    if(tick%40<6){ ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillRect(c.x+8,c.y-12+bob,3,3); }
+  }
+}
+
+function drawGates(){
+  for(const g of gates){
+    if(g.x<cameraX-80||g.x>cameraX+VW+40) continue;
+    const top=g.y, cx=g.x+g.w/2;
+    // posts
+    ctx.fillStyle='#e8eef7'; ctx.fillRect(g.x-6,top+20,10,g.h-20); ctx.fillRect(g.x+g.w-4,top+20,10,g.h-20);
+    ctx.fillStyle='#009EDB'; ctx.fillRect(g.x-8,top+14,14,10); ctx.fillRect(g.x+g.w-6,top+14,14,10);
+    if(!g.cleared){
+      // force field
+      const a=.35+Math.sin(tick*.1+g.id)*.15;
+      const ff=ctx.createLinearGradient(g.x,0,g.x+g.w,0);
+      ff.addColorStop(0,`rgba(255,90,110,${a})`); ff.addColorStop(.5,`rgba(255,201,60,${a*.6})`); ff.addColorStop(1,`rgba(255,90,110,${a})`);
+      ctx.fillStyle=ff; ctx.fillRect(g.x+4,top+24,g.w-8,g.h-24);
+      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5;
+      for(let yy=top+30+(tick%12);yy<top+g.h;yy+=12){ ctx.beginPath(); ctx.moveTo(g.x+4,yy); ctx.lineTo(g.x+g.w-4,yy); ctx.stroke(); }
+    }
+    // barrier arm (red and white), lifts when cleared
+    ctx.save(); ctx.translate(g.x-1,top+70); ctx.rotate(-g.open*Math.PI/2.2);
+    for(let i=0;i<6;i++){ ctx.fillStyle=i%2?'#ffffff':'#ff5a6e'; ctx.fillRect(i*8,-4,8,8); }
+    ctx.restore();
+    // floating question block
+    if(!g.cleared){
+      const by=top-34+Math.sin(tick*.07+g.id)*5;
+      ctx.fillStyle='rgba(0,0,0,.2)'; rr(cx-18,by+4,38,38,8); ctx.fill();
+      ctx.fillStyle='#FFC93C'; rr(cx-20,by,40,40,8); ctx.fill();
+      ctx.fillStyle='#fff3b0'; ctx.fillRect(cx-16,by+4,32,4);
+      ctx.fillStyle='#8a5a00'; ctx.font='800 26px "Baloo 2",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('?',cx,by+22);
+      ctx.fillStyle='#0f1f3d'; rr(cx-28,by-24,56,18,9); ctx.fill();
+      ctx.fillStyle='#ffffff'; ctx.font='800 11px "Baloo 2",sans-serif';
+      ctx.fillText('GATE '+g.id,cx,by-14);
+    }else{
+      ctx.fillStyle='#22c08a'; ctx.beginPath(); ctx.arc(cx,top+4,14,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(cx-6,top+4); ctx.lineTo(cx-1,top+9); ctx.lineTo(cx+7,top-2); ctx.stroke();
+    }
+  }
+}
+
+function drawCrates(){
+  for(const k of crates){
+    if(k.x<cameraX-40||k.x>cameraX+VW+40) continue;
+    if(!k.alive){
+      if(k.squash>0){ ctx.globalAlpha=k.squash/30; ctx.fillStyle='#9a6a35'; ctx.fillRect(k.x-2,k.y+k.h-6,k.w+4,6); ctx.globalAlpha=1; }
+      continue;
+    }
+    const step=Math.sin(tick*.3+k.x*.05);
+    // feet
+    ctx.fillStyle='#3b2a1a'; ctx.fillRect(k.x+4,k.y+k.h-2+(step>0?-2:0),8,4); ctx.fillRect(k.x+k.w-12,k.y+k.h-2+(step>0?0:-2),8,4);
+    // box
+    ctx.fillStyle='#b07a3c'; rr(k.x,k.y,k.w,k.h-2,3); ctx.fill();
+    ctx.fillStyle='#8a5a28'; ctx.fillRect(k.x,k.y+8,k.w,2); ctx.fillRect(k.x,k.y+17,k.w,2);
+    ctx.strokeStyle='#6d4520'; ctx.lineWidth=2; ctx.strokeRect(k.x+1,k.y+1,k.w-2,k.h-4);
+    // warning label
+    ctx.fillStyle='#ff5a6e'; ctx.beginPath(); ctx.moveTo(k.x+k.w/2,k.y+5); ctx.lineTo(k.x+k.w/2+7,k.y+15); ctx.lineTo(k.x+k.w/2-7,k.y+15); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillRect(k.x+k.w/2-1,k.y+8,2,4);
+    // eyes
+    const ex=k.dir>0?3:-3;
+    ctx.fillStyle='#fff'; ctx.fillRect(k.x+7+ex,k.y+18,6,5); ctx.fillRect(k.x+k.w-13+ex,k.y+18,6,5);
+    ctx.fillStyle='#111'; ctx.fillRect(k.x+9+ex+(k.dir>0?1:-1),k.y+19,3,3); ctx.fillRect(k.x+k.w-11+ex+(k.dir>0?1:-1),k.y+19,3,3);
+  }
+}
+
+function drawFlag(){
+  const f=FLAG;
+  ctx.fillStyle='#d6dde8'; ctx.fillRect(f.x,f.y,f.w,f.h);
+  ctx.fillStyle='#FFC93C'; ctx.beginPath(); ctx.arc(f.x+6,f.y,12,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#8a5a2b'; ctx.fillRect(f.x-16,f.y+f.h-10,44,10);
+  // waving UN blue flag
+  ctx.fillStyle='#009EDB'; ctx.beginPath(); ctx.moveTo(f.x+12,f.y+14);
+  for(let i=0;i<=70;i+=5) ctx.lineTo(f.x+12+i,f.y+14+Math.sin(tick*.1+i*.12)*4);
+  for(let i=70;i>=0;i-=5) ctx.lineTo(f.x+12+i,f.y+58+Math.sin(tick*.1+i*.12)*4);
+  ctx.fill();
+  const ey=f.y+36+Math.sin(tick*.1+35*.12)*4;
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(f.x+47,ey,11,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(f.x+47,ey,5,11,0,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(f.x+36,ey); ctx.lineTo(f.x+58,ey); ctx.stroke();
+  ctx.fillStyle='#0f1f3d'; rr(f.x-30,f.y-44,72,20,10); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='800 12px "Baloo 2",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('FINISH',f.x+6,f.y-34);
+}
+
+function drawPlayer(){
+  const P=player;
+  if(P.inv>0&&Math.floor(P.inv/4)%2) return;
+  const cx=P.x+P.w/2, by=P.y+P.h;
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(cx,P.grounded?by+1:by+6,14,4,0,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.translate(cx,P.y); ctx.scale(P.face,1);
+  const sw=P.grounded?Math.sin(P.walk)*6:0, air=!P.grounded;
+  // legs
+  ctx.fillStyle='#24344f';
+  ctx.fillRect(-10+(air?-2:sw*.5),34,8,12); ctx.fillRect(2+(air?3:-sw*.5),34,8,12);
+  ctx.fillStyle='#111827';
+  ctx.fillRect(-11+(air?-2:sw*.5),44,10,4); ctx.fillRect(1+(air?3:-sw*.5),44,10,4);
+  // body (light blue vest)
+  ctx.fillStyle='#5aa9d6'; rr(-13,18,26,18,5); ctx.fill();
+  ctx.fillStyle='#7cc4ea'; ctx.fillRect(-13,18,26,4);
+  ctx.fillStyle='#ffffff'; ctx.font='800 7px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('UN',0,28);
+  // arms
+  ctx.fillStyle='#5aa9d6';
+  ctx.fillRect(-17,20+(air?-6:-sw*.4),5,12); ctx.fillRect(12,20+(air?-6:sw*.4),5,12);
+  ctx.fillStyle='#f2c49b';
+  ctx.fillRect(-17,31+(air?-6:-sw*.4),5,4); ctx.fillRect(12,31+(air?-6:sw*.4),5,4);
+  // head
+  ctx.fillStyle='#f2c49b'; rr(-10,6,20,14,5); ctx.fill();
+  ctx.fillStyle='#111827'; ctx.fillRect(3,11,3,3);
+  ctx.fillStyle='#c98f66'; ctx.fillRect(4,16,4,2);
+  // blue helmet
+  ctx.fillStyle='#009EDB'; ctx.beginPath(); ctx.ellipse(0,8,13,9,0,Math.PI,0); ctx.fill();
+  ctx.fillRect(-14,7,30,4);
+  ctx.fillStyle='#ffffff'; ctx.font='800 7px sans-serif'; ctx.fillText('UN',0,3);
+  ctx.fillStyle='rgba(255,255,255,.45)'; ctx.fillRect(-8,-1,6,2);
+  ctx.restore();
+}
+
+function drawEffects(){
+  for(const p of particles){ ctx.globalAlpha=Math.max(0,p.life/p.max); ctx.fillStyle=p.c; ctx.fillRect(p.x-p.r/2,p.y-p.r/2,p.r,p.r); }
+  ctx.globalAlpha=1;
+  ctx.font='800 16px "Baloo 2",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const f of floats){
+    ctx.globalAlpha=Math.min(1,f.life/30);
+    ctx.lineWidth=4; ctx.strokeStyle='#0f1f3d'; ctx.strokeText(f.txt,f.x,f.y);
+    ctx.fillStyle=f.c; ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;
+}
+
+function drawProgress(){
+  const p=Math.min(1,player.x/FLAG.x);
+  ctx.fillStyle='rgba(15,31,61,.55)'; rr(250,430,300,10,5); ctx.fill();
+  ctx.fillStyle='#FFC93C'; rr(250,430,Math.max(10,300*p),10,5); ctx.fill();
+  GATE_X.forEach((x,i)=>{ ctx.fillStyle=gates[i].cleared?'#22c08a':'#ffffff'; ctx.fillRect(250+300*(x/FLAG.x)-1,428,3,14); });
+}
+
+function render(){
+  ctx.setTransform(RS,0,0,RS,0,0);
+  drawBackground();
+  ctx.save();
+  const sx=shake?(Math.random()-.5)*shake:0, sy=shake?(Math.random()-.5)*shake*.6:0;
+  ctx.translate(-Math.round(cameraX)+sx,sy);
+  drawPlatforms(); drawCoins(); drawGates(); drawCrates(); drawFlag(); drawPlayer(); drawEffects();
+  ctx.restore();
+  drawProgress();
+}
+
+// ---------- HUD ----------
+function updateHUD(){
+  $('scoreText').textContent=player.score;
+  $('coinText').textContent=stats.coins+'/'+coins.length;
+  $('hearts').textContent=[0,1,2].map(i=>i<player.lives?'❤️':'🖤').join('');
+  $('gateDots').innerHTML=gates.map(g=>`<i class="${g.cleared?'on':''}"></i>`).join('');
+}
+
+// ---------- QUIZ ----------
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function openQuiz(g){
+  state='QUIZ'; activeGate=g; sfx.gate();
+  const q=QUIZ[g.q];
+  $('qNum').innerHTML=`<span class="inl"><span class="en">Gate ${g.id} of ${gates.length}</span><span class="ms">Pintu ${g.id} daripada ${gates.length}</span></span>`;
+  $('qText').innerHTML=bi(q.en,q.ms);
+  $('qFb').hidden=true; $('qNext').hidden=true;
+  const opts=shuffle(q.opts.slice());
+  $('qOpts').innerHTML=opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="L">${'ABCD'[i]}</span><span>${bi(o.en,o.ms)}</span></button>`).join('');
+  [...$('qOpts').children].forEach((b,i)=>b.onclick=()=>answer(opts[i],q,b));
+  $('quizScreen').hidden=false;
+  setTimeout(()=>$('qOpts').children[0]?.focus(),50);
+}
+function answer(o,q,btn){
+  const g=activeGate, fb=$('qFb'), all=[...$('qOpts').children];
+  g.tries++;
+  all.forEach(b=>b.disabled=true);
+  if(o.ok){
+    btn.classList.add('right');
+    const pts=g.tries===1?300:100;
+    if(g.tries===1) stats.first++;
+    player.score+=pts; g.cleared=true; updateHUD(); sfx.right();
+    fb.className='fb good';
+    fb.innerHTML=`<b class="inl"><span class="en">✓ Correct! +${pts}</span><span class="ms">Betul!</span></b><br>${bi(q.exp.en,q.exp.ms)}`;
+    fb.hidden=false; $('qNext').hidden=false; $('qNext').focus();
+    burst(g.x+20,g.y+60,['#22c08a','#FFC93C','#ffffff'],22,5); floatText(g.x+20,g.y-50,'+'+pts,'#7ff0c4');
+  }else{
+    btn.classList.add('wrong'); sfx.wrong();
+    fb.className='fb bad';
+    fb.innerHTML=`<b class="inl"><span class="en">✗ Not quite. Try again!</span><span class="ms">Belum tepat. Cuba lagi!</span></b>`;
+    fb.hidden=false;
+    setTimeout(()=>{ all.forEach(b=>{ if(!b.classList.contains('wrong')) b.disabled=false; }); },1200);
+  }
+}
+$('qNext').addEventListener('click',()=>{ $('quizScreen').hidden=true; state='PLAYING'; canvas.focus(); });
+
+// ---------- END STATES ----------
+function win(){
+  state='WIN'; sfx.win();
+  const s=stats.first>=7?3:stats.first>=5?2:1;
+  $('stars').innerHTML=[0,1,2].map(i=>`<span class="${i<s?'':'off'}">⭐</span>`).join('');
+  $('sCoins').textContent=`${stats.coins} / ${coins.length}`;
+  $('sCrates').textContent=`${stats.crates} / ${crates.length}`;
+  $('sFirst').textContent=`${stats.first} / ${QUIZ.length}`;
+  $('sScore').textContent=player.score;
+  for(let i=0;i<5;i++) setTimeout(()=>burst(player.x+(Math.random()-.5)*200,150+Math.random()*100,['#FFC93C','#009EDB','#22c08a','#ff5a6e','#fff'],26,6),i*250);
+  setTimeout(()=>{$('winScreen').hidden=false; $('againBtn').focus();},700);
+}
+function lose(){
+  state='LOSE'; keys.left=keys.right=false; sfx.lose();
+  setTimeout(()=>{$('loseScreen').hidden=false; $('retryBtn').focus();},500);
+}
+function restart(){
+  reset(); ['winScreen','loseScreen','quizScreen'].forEach(id=>$(id).hidden=true);
+  state='PLAYING'; canvas.focus();
+}
+$('startBtn').addEventListener('click',()=>{ initAudio(); $('startScreen').hidden=true; state='PLAYING'; canvas.focus(); });
+$('againBtn').addEventListener('click',restart);
+$('retryBtn').addEventListener('click',restart);
+$('soundBtn').addEventListener('click',()=>{
+  soundOn=!soundOn; $('soundBtn').textContent=soundOn?'🔊':'🔇';
+  $('soundBtn').setAttribute('aria-pressed',String(soundOn));
+  $('soundBtn').setAttribute('aria-label',soundOn?'Sound on / Bunyi dipasang':'Sound off / Bunyi dimatikan');
+  if(soundOn){ initAudio(); sfx.coin(); }
+});
+canvas.addEventListener('pointerdown',()=>canvas.focus());
+
+// ---------- LOOP (fixed 60 updates per second on any screen) ----------
+let last=performance.now(), acc=0;
+function loop(t){
+  acc+=Math.min(100,t-last); last=t;
+  while(acc>=STEP){ update(); acc-=STEP; }
+  render();
+  requestAnimationFrame(loop);
+}
+reset(); resize(); requestAnimationFrame(loop);
+$('startBtn').focus();
+}
+</script>
+</body>
+</html>

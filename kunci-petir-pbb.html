@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kunci Petir PBB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Nunito:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+/* Layout: mission file. Left = question board, right = hand radar. Bright slide palette from Modul 2.
+   Language order: English first (.en primary), Malay second (.ms secondary). */
+:root{
+  --sky:#009EDB; --sun:#FFC93C; --coral:#FF6B6B; --mint:#2EC4B6; --violet:#8E7DFF;
+  --ink:#13294B; --muted:#5B6B86; --paper:#FFFFFF; --mist:#EEF7FC; --line:#D6EAF5;
+  --ok:#22B07D; --bad:#F0506E;
+  --display:"Poppins",system-ui,sans-serif; --body:"Nunito","Poppins",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--body);color:var(--ink);background:var(--paper);min-height:100vh;
+  background-image:radial-gradient(circle,#d9ecf7 1.2px,transparent 1.3px);background-size:22px 22px}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+button:focus-visible{outline:4px solid var(--violet);outline-offset:3px}
+.app{max-width:1280px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left)) 24px}
+
+/* bilingual text: English first, Malay second */
+.en,.ms{display:block}
+.ms{font-family:var(--body);font-style:italic;font-weight:700;opacity:.72;font-size:.82em;margin-top:2px}
+.inl .en,.inl .ms{display:inline}
+.inl .ms::before{content:" / "}
+body.only-ms .en{display:none!important}
+body.only-en .ms{display:none!important}
+body.only-ms .ms{font-style:normal;opacity:1;font-size:1em;margin-top:0}
+body.only-ms .inl .ms::before{content:""}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:14px}
+.seal{width:62px;height:62px;border-radius:50%;background:var(--sky);display:grid;place-items:center;color:#fff;font-size:30px;box-shadow:0 5px 0 #0077a8;flex-shrink:0}
+.badge{display:inline-block;font-family:var(--display);font-weight:800;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;background:var(--sun);color:var(--ink);padding:5px 10px;border-radius:8px;transform:rotate(-2deg)}
+.badge .ms{font-style:normal;font-family:var(--display);font-size:1em;opacity:.8}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(1.6rem,3.4vw,2.5rem);line-height:1;margin:6px 0 0;letter-spacing:-.02em}
+h1 span{color:var(--sky)}
+.sub{font-weight:800;color:var(--muted);font-size:.85rem;margin-top:4px}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.lang{display:flex;border:3px solid var(--ink);border-radius:12px;overflow:hidden}
+.lang button{font-family:var(--display);font-weight:800;font-size:.8rem;padding:6px 11px;background:#fff}
+.lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.teams{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.team{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid var(--line);border-radius:14px;padding:7px 12px;font-family:var(--display);font-weight:700;transition:transform .2s,border-color .2s}
+.team .dot{width:12px;height:12px;border-radius:50%}
+.team b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+.team.turn{border-color:var(--ink);transform:translateY(-3px);box-shadow:0 5px 0 var(--ink)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:16px;align-items:start}
+.board{background:#fff;border:3px solid var(--ink);border-radius:26px;padding:20px;box-shadow:8px 8px 0 var(--sky);min-width:0}
+.board-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.phase{font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#fff;padding:6px 12px;border-radius:999px}
+.phase .ms{font-style:normal;font-family:var(--display);font-size:1em}
+.qcount{font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.turnline{font-weight:800;color:var(--muted);margin-top:10px;min-height:1.3em}
+.turnline b{color:var(--ink)}
+.question{font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,2.7vw,2.05rem);line-height:1.22;margin:8px 0 14px;text-wrap:balance;min-height:2.5em}
+.question .ms{font-size:.62em;margin-top:6px;color:var(--muted);opacity:1}
+
+.timer{height:12px;background:var(--mist);border-radius:999px;overflow:hidden;margin-bottom:16px;border:2px solid var(--line)}
+.timer>div{height:100%;width:100%;background:var(--mint);transition:width .25s linear,background .3s}
+
+.answers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.answer{position:relative;min-height:150px;padding:18px 12px 16px;border-radius:20px;font-family:var(--display);font-weight:700;font-size:clamp(.92rem,1.6vw,1.1rem);line-height:1.3;border:3px solid var(--ink);box-shadow:0 6px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;transition:transform .15s,box-shadow .15s;overflow:hidden}
+.answer:nth-child(1){background:#CFEFFC}.answer:nth-child(2){background:#FFF0C2}.answer:nth-child(3){background:#FFD9D9}
+.answer .letter{width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:grid;place-items:center;font-weight:900;flex-shrink:0}
+.answer .dwell{position:absolute;left:0;bottom:0;height:7px;width:0;background:var(--violet)}
+.answer.hover{transform:translateY(-3px)}
+.answer.selected{transform:translateY(-6px) rotate(-1deg);box-shadow:0 10px 0 var(--violet);border-color:var(--violet)}
+.answer::after{position:absolute;top:8px;right:8px;color:#fff;font-size:.6rem;letter-spacing:.06em;border-radius:6px;padding:4px 7px}
+.answer.selected::after{content:"LOCKED / DIKUNCI";background:var(--violet)}
+.answer.correct{background:#BFF2DC!important;border-color:var(--ok);box-shadow:0 6px 0 var(--ok)}
+.answer.correct::after{content:"CORRECT / BETUL";background:var(--ok)}
+.answer.wrong{background:#FFD0D8!important;border-color:var(--bad);box-shadow:0 6px 0 var(--bad)}
+.answer.wrong::after{content:"WRONG / SALAH";background:var(--bad)}
+.answer:disabled{cursor:default}
+
+.reveal{margin-top:16px;border-radius:18px;padding:14px 16px;background:var(--mist);border:3px dashed var(--line);font-weight:700;line-height:1.45;min-height:64px;display:flex;gap:12px;align-items:flex-start}
+.reveal .tag{font-family:var(--display);font-weight:800;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff;border-radius:6px;padding:4px 8px;white-space:nowrap;margin-top:2px}
+.reveal .tag .ms{font-style:normal;font-family:var(--display);font-size:1em;opacity:.85}
+.reveal.good{background:#E6FAF2;border:3px solid var(--ok)}
+.reveal.good .tag{background:var(--ok)}
+.reveal.miss{background:#FFF0F2;border:3px solid var(--bad)}
+.reveal.miss .tag{background:var(--bad)}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{font-family:var(--display);font-weight:800;padding:10px 16px;border-radius:14px;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:#fff;transition:transform .1s,box-shadow .1s;text-align:left;line-height:1.2}
+.btn .ms{font-size:.75em}
+.btn:active{transform:translateY(4px);box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--sky);color:#fff}
+.btn.sun{background:var(--sun)}
+.btn.big{font-size:1.2rem;padding:14px 22px}
+.keys{font-size:.82rem;color:var(--muted);font-weight:700;margin:12px 0 0;line-height:1.55}
+kbd{font-family:var(--display);font-style:normal;background:#fff;border:2px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-size:.78rem;color:var(--ink)}
+
+/* side */
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:#fff;border:3px solid var(--ink);border-radius:22px;padding:16px}
+.panel h2{font-family:var(--display);font-weight:800;font-size:1.05rem;margin:0 0 10px}
+.panel h2 .ms{font-size:.75em}
+.cam{position:relative;aspect-ratio:4/3;max-width:100%;background:var(--ink);border-radius:16px;overflow:hidden}
+video{display:none}
+canvas{display:block;width:100%;height:100%}
+.cam-msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:18px;color:#fff;font-weight:800;line-height:1.4;background:rgba(19,41,75,.82)}
+.cam-msg[hidden]{display:none}
+.handstat{font-size:.85rem;font-weight:800;color:var(--muted);margin:10px 0 0}
+#camRetry{margin-top:10px;width:100%}
+#camRetry[hidden]{display:none}
+.steps{display:grid;gap:8px}
+.step{display:flex;gap:10px;align-items:center;background:var(--mist);border-radius:12px;padding:9px 11px}
+.step .em{font-size:1.5rem}
+.step b{display:block;font-family:var(--display);font-size:.88rem}
+.step small{display:block;color:var(--muted);font-weight:700;line-height:1.3}
+
+/* flash */
+.flash{position:fixed;inset:0;pointer-events:none;z-index:30;opacity:0;background:#fff}
+.flash.go{animation:flash .5s ease-out}
+@keyframes flash{0%{opacity:0}12%{opacity:.9}25%{opacity:.1}40%{opacity:.7}100%{opacity:0}}
+.bolt{position:fixed;left:50%;top:45%;z-index:31;pointer-events:none;font-size:clamp(6rem,16vw,12rem);opacity:0;transform:translate(-50%,-50%) scale(.3);filter:drop-shadow(0 0 20px var(--sun))}
+.bolt.go{animation:bolt .7s ease-out}
+@keyframes bolt{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-14deg)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(8deg)}70%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-4deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+.stamp{position:fixed;left:50%;top:45%;z-index:32;pointer-events:none;font-family:var(--display);font-weight:900;font-size:clamp(3rem,9vw,6rem);color:var(--coral);border:8px solid var(--coral);border-radius:18px;padding:4px 26px;opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2);background:rgba(255,255,255,.85)}
+.stamp.go{animation:stamp 1.3s ease-out}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.2)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}80%{opacity:1}100%{opacity:0}}
+
+/* overlay screens */
+.overlay{position:fixed;inset:0;z-index:40;background:rgba(19,41,75,.6);display:grid;place-items:center;padding:16px;overflow:auto}
+.overlay[hidden]{display:none}
+.sheet{width:min(660px,100%);background:#fff;border:4px solid var(--ink);border-radius:28px;padding:26px;box-shadow:10px 10px 0 var(--sun)}
+.sheet h2{font-family:var(--display);font-weight:900;font-size:clamp(1.6rem,4vw,2.2rem);margin:8px 0 6px;line-height:1.1}
+.sheet h2 .ms{font-size:.55em}
+.sheet p{color:var(--muted);font-weight:700;line-height:1.5;margin:0 0 14px}
+.gate-steps{display:grid;gap:8px;margin:0 0 14px;padding:0;list-style:none}
+.gate-steps li{display:flex;gap:10px;align-items:flex-start;background:var(--mist);border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.4}
+.gate-steps li b{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--display);font-size:.85rem}
+.gate-msg{border-radius:14px;font-weight:800;line-height:1.45;margin:0 0 6px;padding:12px 14px}
+.gate-msg:empty{display:none}
+.gate-msg.wait{background:var(--mist);border:3px dashed var(--line)}
+.gate-msg.err{background:#FFF0F2;border:3px solid var(--bad)}
+.gate-msg.ok{background:#E6FAF2;border:3px solid var(--ok)}
+.field{margin:14px 0}
+.field label{display:block;font-family:var(--display);font-weight:800;font-size:.85rem;margin-bottom:8px}
+.choice{display:flex;gap:8px;flex-wrap:wrap}
+.choice button{font-family:var(--display);font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:9px 14px;background:#fff;text-align:left;line-height:1.2}
+.choice button .ms{font-size:.75em}
+.choice button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.names{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.names input{font:inherit;font-weight:800;border:3px solid var(--line);border-radius:12px;padding:9px 11px;min-width:0;color:var(--ink)}
+.names input:focus{outline:none;border-color:var(--sky)}
+.rank{display:grid;gap:8px;margin:12px 0 16px}
+.rank div{display:flex;justify-content:space-between;align-items:center;border:3px solid var(--line);border-radius:14px;padding:10px 14px;font-family:var(--display);font-weight:800}
+.rank div:first-child{border-color:var(--sun);background:#FFF6DA}
+.rank span{font-variant-numeric:tabular-nums}
+.reflect{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.bubble{border-radius:18px;padding:14px;font-weight:800;min-height:110px;line-height:1.4}
+.bubble small{display:block;font-family:var(--display);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.bubble small .ms{font-size:1em}
+.bubble.then{background:#EDF1F6;color:var(--muted)}
+.bubble.now{background:#FFF0C2}
+
+.footer{text-align:center;color:var(--muted);font-size:.78rem;font-weight:700;padding-top:18px}
+
+@media(max-width:900px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.right{align-items:flex-start}.teams{justify-content:flex-start}}
+@media(max-width:600px){
+  .board{padding:15px;box-shadow:5px 5px 0 var(--sky)}
+  .answers{grid-template-columns:1fr}
+  .answer{min-height:76px;flex-direction:row;justify-content:flex-start;text-align:left;padding:14px}
+  .side{display:flex}.question{min-height:0}.reflect,.names{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="bolt" id="bolt">⚡</div>
+<div class="stamp" id="stamp">VETO!</div>
+
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="seal">🇺🇳</div>
+    <div>
+      <span class="badge inl"><span class="en">Mission 2: Get to Know the UN</span><span class="ms">Misi 2: Kenali PBB</span></span>
+      <h1>Kunci Petir <span>PBB</span></h1>
+      <div class="sub inl"><span class="en">Hand gesture quiz game</span><span class="ms">Permainan kuiz gerak tangan</span></div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="lang" id="lang" role="group" aria-label="Language / Bahasa">
+      <button data-l="both" aria-pressed="true">EN + BM</button>
+      <button data-l="en" aria-pressed="false">EN</button>
+      <button data-l="ms" aria-pressed="false">BM</button>
+    </div>
+    <div class="teams" id="teams"></div>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="board">
+    <div class="board-top">
+      <span class="phase inl" id="phase" style="background:var(--sky)"><span class="en">Briefing</span><span class="ms">Taklimat</span></span>
+      <span class="qcount"><span class="inl"><span class="en">Question</span><span class="ms">Soalan</span></span> <span id="qnum">0</span>/<span id="qtotal">0</span></span>
+    </div>
+    <div class="turnline" id="turnline"></div>
+    <div class="question" id="question"><span class="en">Agents, are you ready for the mission? Press "Start Mission".</span><span class="ms">Agen, sudah bersedia untuk misi? Tekan "Mula Misi".</span></div>
+    <div class="timer"><div id="timerBar"></div></div>
+    <div class="answers" id="answers">
+      <button class="answer" data-i="0"><span class="letter">A</span><span class="txt"></span><span class="dwell"></span></button>
+      <button class="answer" data-i="1"><span class="letter">B</span><span class="txt"></span><span class="dwell"></span></button>
+      <button class="answer" data-i="2"><span class="letter">C</span><span class="txt"></span><span class="dwell"></span></button>
+    </div>
+    <div class="reveal" id="reveal" role="status"><span class="tag"></span><span class="body"></span></div>
+    <div class="controls">
+      <button class="btn primary" id="startBtn"><span class="en">⚡ Start Mission</span><span class="ms">Mula Misi</span></button>
+      <button class="btn sun" id="nextBtn" disabled><span class="en">Next Question ➜</span><span class="ms">Soalan Seterusnya</span></button>
+      <button class="btn" id="soundBtn" aria-pressed="true"><span class="en">🔊 Sound On</span><span class="ms">Bunyi Dipasang</span></button>
+      <button class="btn" id="fsBtn"><span class="en">⛶ Full Screen</span><span class="ms">Skrin Penuh</span></button>
+    </div>
+    <p class="keys">
+      <span class="en">Facilitator controls: <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> to lock an answer, <kbd>Space</kbd> to strike, <kbd>N</kbd> for the next question. Without a camera, click an answer once to lock it and click it again to strike.</span>
+      <span class="ms">Kawalan fasilitator: <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> untuk mengunci jawapan, <kbd>Space</kbd> untuk melancarkan petir, <kbd>N</kbd> untuk soalan seterusnya. Tanpa kamera, klik jawapan sekali untuk menguncinya dan klik sekali lagi untuk melancarkan petir.</span>
+    </p>
+  </section>
+
+  <aside class="side">
+    <section class="panel">
+      <h2>📡 <span class="inl"><span class="en">Hand Radar</span><span class="ms">Radar Tangan</span></span></h2>
+      <div class="cam">
+        <video id="video" playsinline muted autoplay></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
+        <div class="cam-msg" id="camMsg"><div><span class="en">The camera is off. Press "Open Camera".</span><span class="ms">Kamera belum dibuka. Tekan "Buka Kamera".</span></div></div>
+      </div>
+      <button class="btn primary" id="camRetry"><span class="en">📷 Open Camera</span><span class="ms">Buka Kamera</span></button>
+      <p class="handstat" id="handStat"></p>
+    </section>
+    <section class="panel">
+      <h2>🖐️ <span class="inl"><span class="en">How to Play</span><span class="ms">Cara Bermain</span></span></h2>
+      <div class="steps">
+        <div class="step"><span class="em">☝️</span><div><b class="inl"><span class="en">1. Point</span><span class="ms">Halakan</span></b><small><span class="en">Move your index finger to the left, centre or right to choose A, B or C.</span><span class="ms">Gerakkan jari telunjuk ke kiri, tengah atau kanan untuk memilih A, B atau C.</span></small></div></div>
+        <div class="step"><span class="em">⏳</span><div><b class="inl"><span class="en">2. Hold</span><span class="ms">Tahan seketika</span></b><small><span class="en">When the purple bar is full, your answer is locked.</span><span class="ms">Apabila bar ungu penuh, jawapan anda dikunci.</span></small></div></div>
+        <div class="step"><span class="em">✊</span><div><b class="inl"><span class="en">3. Make a fist</span><span class="ms">Genggam</span></b><small><span class="en">Make a fist to strike and reveal the answer.</span><span class="ms">Genggam tangan untuk melancarkan petir dan mendedahkan jawapan.</span></small></div></div>
+      </div>
+    </section>
+  </aside>
+</main>
+<div class="footer">SULAM IRB31603 · PBB vs Kumpulan Pengganas: Misi Menjaga Dunia · <span class="inl"><span class="en">Camera video stays in this browser</span><span class="ms">Video kamera diproses dalam pelayar ini sahaja</span></span></div>
+</div>
+
+<!-- Camera gate: shown first -->
+<div class="overlay" id="camGate">
+  <div class="sheet">
+    <span class="badge inl"><span class="en">Step 1</span><span class="ms">Langkah 1</span></span>
+    <h2><span class="en">📷 Open the Camera First</span><span class="ms">Buka Kamera Dahulu</span></h2>
+    <p><span class="en">This game uses your hand as the controller, so the camera must be on before the mission starts.</span><span class="ms">Permainan ini menggunakan tangan anda sebagai alat kawalan, jadi kamera mesti dibuka sebelum misi bermula.</span></p>
+    <ol class="gate-steps">
+      <li><b>1</b><div><span class="en">Press "Open Camera" below.</span><span class="ms">Tekan "Buka Kamera" di bawah.</span></div></li>
+      <li><b>2</b><div><span class="en">When the browser asks, choose "Allow".</span><span class="ms">Apabila pelayar bertanya, pilih "Allow" (Benarkan).</span></div></li>
+      <li><b>3</b><div><span class="en">Raise your hand in front of the camera to test it.</span><span class="ms">Angkat tangan di hadapan kamera untuk mengujinya.</span></div></li>
+    </ol>
+    <div class="gate-msg" id="gateMsg" role="status"></div>
+    <div class="controls">
+      <button class="btn primary big" id="camBtn"><span class="en">📷 Open Camera</span><span class="ms">Buka Kamera</span></button>
+      <button class="btn" id="skipCam"><span class="en">Continue without camera</span><span class="ms">Teruskan tanpa kamera</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Setup -->
+<div class="overlay" id="setup" hidden>
+  <div class="sheet">
+    <span class="badge inl"><span class="en">Classified Mission File</span><span class="ms">Fail Misi Sulit</span></span>
+    <h2><span class="en">UN Agent Briefing</span><span class="ms">Taklimat Agen PBB</span></h2>
+    <p><span class="en">Your group answers every question together. A correct answer earns 100 points plus a time bonus. A wrong answer earns no points, but you still learn something.</span><span class="ms">Kumpulan anda menjawab setiap soalan bersama-sama. Jawapan yang betul mendapat 100 mata serta bonus masa. Jawapan yang salah tidak mendapat mata, tetapi anda tetap mempelajari sesuatu.</span></p>
+    <div class="field">
+      <label class="inl" for="team0"><span class="en">Group name</span><span class="ms">Nama kumpulan</span></label>
+      <div class="names" id="names"></div>
+    </div>
+    <div class="field">
+      <label class="inl"><span class="en">Mission length</span><span class="ms">Panjang misi</span></label>
+      <div class="choice" id="lengthPick">
+        <button aria-pressed="true" data-len="short"><span class="en">Short: 8 questions</span><span class="ms">Pendek: 8 soalan</span></button>
+        <button aria-pressed="false" data-len="full"><span class="en">Full: 16 questions</span><span class="ms">Penuh: 16 soalan</span></button>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="goBtn"><span class="en">⚡ Begin</span><span class="ms">Mulakan</span></button>
+      <button class="btn" id="cancelBtn"><span class="en">Close</span><span class="ms">Tutup</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- End -->
+<div class="overlay" id="endSheet" hidden>
+  <div class="sheet">
+    <span class="badge inl"><span class="en">Mission Complete</span><span class="ms">Misi Selesai</span></span>
+    <h2 id="endTitle"></h2>
+    <div class="rank" id="rank"></div>
+    <div class="reflect">
+      <div class="bubble then"><small class="inl"><span class="en">I used to think…</span><span class="ms">Dulu saya fikir…</span></small><span class="en">The UN only talks and cannot do anything.</span><span class="ms">PBB hanya bercakap dan tidak boleh berbuat apa-apa.</span></div>
+      <div class="bubble now"><small class="inl"><span class="en">Now I know…</span><span class="ms">Sekarang saya tahu…</span></small><span class="en">Write one new thing you learned today.</span><span class="ms">Tulis satu perkara baharu yang anda pelajari hari ini.</span></div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="againBtn"><span class="en">⚡ Play Again</span><span class="ms">Main Semula</span></button>
+      <button class="btn" id="closeEnd"><span class="en">Close</span><span class="ms">Tutup</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<script>
+(() => {
+  const PHASE = {
+    fakta:{ms:"Teka Fakta",en:"Guess the Fact",c:"var(--sky)"},
+    sekolah:{ms:"Sekolah Dunia",en:"World School",c:"var(--mint)"},
+    majlis:{ms:"Majlis Keselamatan",en:"Security Council",c:"var(--violet)"},
+    veto:{ms:"Kuasa Veto",en:"Veto Power",c:"var(--coral)"},
+    alat:{ms:"Beg Alat Misi",en:"Mission Toolkit",c:"#E0A100"},
+    misi:{ms:"Misi Pertama",en:"First Mission",c:"var(--ink)"}
+  };
+  // Each item: p = phase, q/a/why = [Malay, English]. Display order is English first.
+  const BANK = [
+    {p:"fakta",q:["PBB ditubuhkan pada tahun berapa?","In which year was the UN founded?"],
+      a:[["1919","1919"],["1945","1945"],["1957","1957"]],c:1,
+      why:["PBB ditubuhkan pada 24 Oktober 1945, selepas Perang Dunia Kedua, supaya dunia tidak berperang lagi.","The UN was founded on 24 October 1945, after the Second World War, so that the world would not go to war again."]},
+    {p:"fakta",q:["Berapakah bilangan negara anggota PBB hari ini?","How many member states does the UN have today?"],
+      a:[["150","150"],["193","193"],["205","205"]],c:1,
+      why:["PBB mempunyai 193 negara anggota. Setiap negara mempunyai satu undi dalam Perhimpunan Agung.","The UN has 193 member states. Each country has one vote in the General Assembly."]},
+    {p:"fakta",q:["Di manakah terletaknya ibu pejabat PBB?","Where is the UN headquarters?"],
+      a:[["Geneva, Switzerland","Geneva, Switzerland"],["New York, Amerika Syarikat","New York, United States"],["Paris, Perancis","Paris, France"]],c:1,
+      why:["Ibu pejabat PBB terletak di New York, Amerika Syarikat.","The UN headquarters is in New York, United States."]},
+    {p:"fakta",q:["Pada tahun berapakah Malaysia menyertai PBB?","In which year did Malaysia join the UN?"],
+      a:[["1945","1945"],["1957","1957"],["1963","1963"]],c:1,
+      why:["Persekutuan Tanah Melayu menyertai PBB pada 17 September 1957, hanya 17 hari selepas merdeka.","The Federation of Malaya joined the UN on 17 September 1957, only 17 days after independence."]},
+    {p:"sekolah",q:["Jika PBB ialah sebuah sekolah dunia, siapakah murid-muridnya?","If the UN were a world school, who would its students be?"],
+      a:[["Negara-negara","Countries"],["Tentera","Soldiers"],["Setiausaha Agung","The Secretary-General"]],c:0,
+      why:["Dalam sekolah dunia, setiap negara ialah seorang murid. Jumlahnya 193 orang murid.","In the world school, every country is a student. There are 193 students in total."]},
+    {p:"sekolah",q:["Dalam sekolah dunia, apakah yang menjadi 'peraturan sekolah'?","In the world school, what are the 'school rules'?"],
+      a:[["Piagam ASEAN","The ASEAN Charter"],["Piagam PBB","The UN Charter"],["Perlembagaan Persekutuan","The Federal Constitution"]],c:1,
+      why:["Piagam PBB menetapkan tujuan, prinsip dan peraturan yang dipersetujui oleh semua negara anggota.","The UN Charter sets out the purposes, principles and rules that all member states agree to follow."]},
+    {p:"sekolah",q:["'Perhimpunan semua kelas', yang memberikan satu undi kepada setiap negara, ialah…","The 'assembly of all classes', where every country has one vote, is…"],
+      a:[["Perhimpunan Agung","The General Assembly"],["Majlis Keselamatan","The Security Council"],["UNICEF","UNICEF"]],c:0,
+      why:["Perhimpunan Agung menghimpunkan kesemua 193 negara. Satu negara, satu undi, tidak kira besar atau kecil.","The General Assembly brings together all 193 countries. One country, one vote, big or small."]},
+    {p:"majlis",q:["'Lembaga disiplin' dunia yang keputusannya WAJIB dipatuhi ialah…","The world's 'discipline board', whose decisions MUST be obeyed, is…"],
+      a:[["Perhimpunan Agung","The General Assembly"],["Majlis Keselamatan","The Security Council"],["Mahkamah Sukan","The Court of Sport"]],c:1,
+      why:["Majlis Keselamatan memikul tanggungjawab utama menjaga keamanan dunia. Negara anggota wajib menerima keputusannya (Piagam PBB, Perkara 25).","The Security Council has primary responsibility for world peace. Member states must accept its decisions (UN Charter, Article 25)."]},
+    {p:"majlis",q:["Berapakah bilangan anggota Majlis Keselamatan?","How many members does the Security Council have?"],
+      a:[["5","5"],["15","15"],["193","193"]],c:1,
+      why:["Majlis Keselamatan mempunyai 15 anggota, iaitu 5 anggota tetap dan 10 anggota tidak tetap yang dipilih untuk tempoh 2 tahun.","The Security Council has 15 members: 5 permanent members and 10 non-permanent members elected for 2-year terms."]},
+    {p:"majlis",q:["Siapakah 5 anggota tetap (P5) Majlis Keselamatan?","Who are the 5 permanent members (P5) of the Security Council?"],
+      a:[["China, Perancis, Rusia, United Kingdom, Amerika Syarikat","China, France, Russia, United Kingdom, United States"],["Jepun, Jerman, India, Brazil, Malaysia","Japan, Germany, India, Brazil, Malaysia"],["Amerika Syarikat, Kanada, Australia, Jepun, United Kingdom","United States, Canada, Australia, Japan, United Kingdom"]],c:0,
+      why:["P5 terdiri daripada China, Perancis, Rusia, United Kingdom dan Amerika Syarikat, iaitu kuasa besar yang menang dalam Perang Dunia Kedua.","The P5 are China, France, Russia, the United Kingdom and the United States, the major powers that won the Second World War."]},
+    {p:"majlis",q:["Sesuatu usul memerlukan sekurang-kurangnya berapa undi 'setuju' untuk diluluskan?","At least how many 'yes' votes does a resolution need to pass?"],
+      a:[["5","5"],["9","9"],["15","15"]],c:1,
+      why:["Usul memerlukan 9 daripada 15 undi setuju, dan tiada anggota tetap yang menggunakan veto.","A resolution needs 9 out of 15 yes votes, and no permanent member may use its veto."]},
+    {p:"veto",q:["14 anggota bersetuju. 1 anggota TETAP mengundi menentang. Apakah yang berlaku kepada usul itu?","14 members agree. 1 PERMANENT member votes against. What happens to the resolution?"],
+      a:[["Diluluskan","It passes"],["Gagal","It fails"],["Ditangguhkan seminggu","It is delayed by one week"]],c:1,veto:true,
+      why:["Itulah kuasa VETO. Satu undi menentang daripada anggota tetap sudah cukup untuk menggagalkan usul.","That is VETO power. One vote against from a permanent member is enough to block the resolution."]},
+    {p:"alat",q:["Larangan menjual senjata kepada sesuatu pihak dipanggil…","A ban on selling weapons to a party is called…"],
+      a:[["Embargo senjata","An arms embargo"],["Pasukan pengaman","A peacekeeping force"],["Rundingan","Negotiation"]],c:0,
+      why:["Embargo senjata menyekat bekalan senjata supaya konflik tidak menjadi lebih buruk.","An arms embargo cuts off the supply of weapons so the conflict does not get worse."]},
+    {p:"alat",q:["Alat Majlis Keselamatan yang paling LEMBUT dan dicuba terlebih dahulu ialah…","The SOFTEST Security Council tool, tried first, is…"],
+      a:[["Tindakan tegas","Firm action"],["Siasatan dan rundingan","Investigation and negotiation"],["Embargo senjata","An arms embargo"]],c:1,
+      why:["Tangga alat bermula dengan rundingan, diikuti sekatan, embargo senjata dan pasukan pengaman, manakala tindakan tegas ialah pilihan terakhir.","The toolkit ladder starts with negotiation, then sanctions, an arms embargo and peacekeepers, with firm action as the last resort."]},
+    {p:"misi",q:["Kumpulan pengganas mengumpul wang melalui akaun bank rahsia. Alat manakah yang paling sesuai?","A terrorist group collects money through secret bank accounts. Which tool fits best?"],
+      a:[["Membekukan aset (sekatan kewangan)","Freeze their assets (financial sanctions)"],["Menghantar pasukan pengaman ke bank","Send peacekeepers to the bank"],["Menunggu undian Perhimpunan Agung","Wait for a General Assembly vote"]],c:0,
+      why:["Majlis Keselamatan telah membekukan aset, melarang perjalanan dan mengenakan embargo senjata ke atas ISIL (Da'esh). Tanpa wang dan senjata, kumpulan pengganas menjadi lemah.","The Security Council has frozen assets, banned travel and imposed an arms embargo on ISIL (Da'esh). Without money and weapons, terrorist groups become weak."]},
+    {p:"misi",q:["Berapa kalikah Malaysia pernah menjadi anggota Majlis Keselamatan?","How many times has Malaysia been a member of the Security Council?"],
+      a:[["Sekali","Once"],["Empat kali","Four times"],["Tidak pernah","Never"]],c:1,
+      why:["Empat kali, iaitu pada 1965, 1989 hingga 1990, 1999 hingga 2000, dan 2015 hingga 2016. Malaysia juga pernah menghantar pasukan pengaman ke Lubnan, Bosnia dan Somalia.","Four times: 1965, 1989 to 1990, 1999 to 2000, and 2015 to 2016. Malaysia has also sent peacekeepers to Lebanon, Bosnia and Somalia."]}
+  ];
+  const SHORT = [0,3,4,7,8,11,12,14];
+  const TEAM_COLORS = ["var(--sky)","var(--sun)","var(--coral)","var(--mint)"];
+  const Q_TIME = 20;
+
+  const $ = id => document.getElementById(id);
+  const btns = [...document.querySelectorAll('.answer')];
+  const video = $('video'), canvas = $('canvas'), ctx = canvas.getContext('2d');
+
+  let quiz=[], idx=0, teams=[], turn=0, running=false, answered=false, locked=-1;
+  let time=Q_TIME, timer=null, soundOn=true, audio=null;
+  let teamN=1, length='short', lang='both';
+  let hands=null, stream=null, processing=false, camOn=false, tracking=false;
+  let hoverZone=-1, dwellStart=0, fistFrames=0, fistLatched=false, lastStat='';
+  const DWELL_MS=750;
+
+  const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // bi(ms, en) renders English first, then Malay
+  const bi = (ms,en) => `<span class="en">${esc(en)}</span><span class="ms">${esc(ms)}</span>`;
+  const biInl = (ms,en) => `<span class="inl">${bi(ms,en)}</span>`;
+
+  /* ---------- language toggle ---------- */
+  $('lang').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    lang=b.dataset.l;
+    $('lang').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    document.body.classList.toggle('only-ms',lang==='ms');
+    document.body.classList.toggle('only-en',lang==='en');
+    document.documentElement.lang = lang==='ms'?'ms':'en';
+  }));
+
+  /* ---------- sound ---------- */
+  function tone(f=660,d=.12,type='sine',v=.05,delay=0){
+    if(!soundOn) return;
+    try{
+      audio = audio || new (window.AudioContext||window.webkitAudioContext)();
+      const t=audio.currentTime+delay, o=audio.createOscillator(), g=audio.createGain();
+      o.type=type; o.frequency.value=f; g.gain.setValueAtTime(v,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+d);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t+d);
+    }catch(e){}
+  }
+
+  /* ---------- setup sheet ---------- */
+  function drawNames(){
+    const box=$('names'); const old=[...box.querySelectorAll('input')].map(i=>i.value);
+    box.innerHTML='';
+    for(let i=0;i<teamN;i++){
+      const inp=document.createElement('input');
+      inp.id='team'+i; inp.maxLength=18; inp.value=old[i]||'Group 1';
+      box.appendChild(inp);
+    }
+  }
+  function pick(groupId, attr, cb){
+    $(groupId).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      $(groupId).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true'); cb(b.dataset[attr]);
+    }));
+  }
+  pick('lengthPick','len',v=>{length=v});
+  drawNames();
+
+  /* ---------- rendering ---------- */
+  function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+  function renderTeams(){
+    $('teams').innerHTML = teams.map((t,i)=>
+      `<div class="team${running&&i===turn&&teams.length>1?' turn':''}"><span class="dot" style="background:${TEAM_COLORS[i]}"></span>${esc(t.name)} <b>${t.score}</b></div>`).join('');
+  }
+
+  function setReveal(tagMs, tagEn, ms, en, cls=''){
+    const r=$('reveal'); r.className='reveal'+(cls?' '+cls:'');
+    r.querySelector('.tag').innerHTML=biInl(tagMs,tagEn);
+    r.querySelector('.body').innerHTML=bi(ms,en);
+  }
+  function setStat(ms,en){
+    const key=ms+en; if(key===lastStat) return; lastStat=key;
+    $('handStat').innerHTML=biInl(ms,'Status: '+en);
+  }
+
+  function renderQuestion(){
+    const item=quiz[idx], ph=PHASE[item.p];
+    $('qnum').textContent=idx+1; $('qtotal').textContent=quiz.length;
+    $('phase').innerHTML=bi(ph.ms,ph.en); $('phase').style.background=ph.c;
+    $('question').innerHTML=bi(item.q[0],item.q[1]);
+    $('turnline').innerHTML = teams.length>1 ? `${biInl('Giliran','Turn')}: <b>${esc(teams[turn].name)}</b>` : '';
+    btns.forEach((b,i)=>{
+      b.className='answer'; b.disabled=false;
+      b.querySelector('.txt').innerHTML=bi(item.opts[i][0],item.opts[i][1]);
+      b.querySelector('.dwell').style.width='0';
+    });
+    locked=-1; answered=false; hoverZone=-1;
+    $('nextBtn').disabled=true;
+    $('nextBtn').innerHTML = idx===quiz.length-1 ? bi('Lihat Keputusan','See Results 🏆') : bi('Soalan Seterusnya','Next Question ➜');
+    setReveal('Arahan','Instructions','Pilih jawapan, kunci, kemudian lancarkan petir.','Choose an answer, lock it, then strike.');
+    time=Q_TIME; updateTimer(); startTimer();
+    renderTeams();
+  }
+
+  function updateTimer(){
+    const bar=$('timerBar'); bar.style.width=(time/Q_TIME*100)+'%';
+    bar.style.background = time>10?'var(--mint)':time>5?'var(--sun)':'var(--coral)';
+  }
+  function startTimer(){
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      if(!running||answered) return;
+      time--; updateTimer();
+      if(time<=5&&time>0) tone(440,.06,'square',.03);
+      if(time<=0) timeUp();
+    },1000);
+  }
+
+  /* ---------- game actions ---------- */
+  function choose(i){
+    if(!running||answered) return;
+    locked=i;
+    btns.forEach((b,j)=>b.classList.toggle('selected',j===i));
+    const L='ABC'[i];
+    setReveal('Dikunci','Locked','Jawapan '+L+' telah dikunci. Genggam tangan atau tekan Space untuk melancarkan petir!','Answer '+L+' is locked. Make a fist or press Space to strike!');
+    tone(520,.08,'triangle');
+  }
+
+  function strike(){
+    if(!running||answered||locked<0) return;
+    const item=quiz[idx], ok=locked===item.correct;
+    finishQuestion();
+    const f=$('flash'), b=$('bolt'); f.classList.remove('go'); b.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); b.classList.add('go');
+    if(!ok) btns[locked].classList.add('wrong');
+    if(ok){
+      const pts=100+time*5; teams[turn].score+=pts; teams[turn].right++;
+      setReveal('Tepat! +'+pts+' mata','Correct! +'+pts+' points', item.why[0], item.why[1], 'good');
+      tone(880,.14,'triangle'); tone(1180,.22,'triangle',.05,.11);
+    }else{
+      setReveal('Fakta Penting','Key Fact', item.why[0], item.why[1], 'miss');
+      tone(180,.3,'sawtooth',.04);
+    }
+    if(item.veto){ const s=$('stamp'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }
+    renderTeams();
+  }
+
+  function timeUp(){
+    if(answered) return;
+    const item=quiz[idx];
+    finishQuestion();
+    setReveal('Masa tamat','Time is up', item.why[0], item.why[1], 'miss');
+    tone(220,.35,'sawtooth',.04);
+  }
+
+  function finishQuestion(){
+    answered=true; clearInterval(timer);
+    const item=quiz[idx];
+    btns.forEach((b,i)=>{ b.disabled=true; b.classList.remove('hover'); b.querySelector('.dwell').style.width='0'; if(i===item.correct) b.classList.add('correct') });
+    $('nextBtn').disabled=false;
+  }
+
+  function next(){
+    if(!running||!answered) return;
+    if(idx>=quiz.length-1){ end(); return }
+    idx++; if(teams.length>1) turn=(turn+1)%teams.length;
+    renderQuestion();
+  }
+
+  function end(){
+    running=false; clearInterval(timer);
+    const sorted=[...teams].sort((a,b)=>b.score-a.score);
+    $('endTitle').innerHTML = teams.length>1
+      ? bi(sorted[0].name+' juara misi!', sorted[0].name+' wins the mission!')
+      : bi('Dunia selamat, Agen!','The world is safe, Agent!');
+    $('rank').innerHTML = sorted.map(t=>`<div><span>🏆 ${esc(t.name)}</span><span>${t.score} ${biInl('mata','points')}</span></div><div><span>${biInl('Jawapan betul','Correct answers')}</span><span>${t.right} / ${quiz.length}</span></div>`).join('');
+    $('endSheet').hidden=false;
+    $('startBtn').disabled=false; $('startBtn').innerHTML=bi('Misi Baharu','⚡ New Mission');
+    renderTeams();
+    tone(660,.15,'triangle'); tone(880,.15,'triangle',.05,.15); tone(1320,.3,'triangle',.05,.3);
+  }
+
+  function begin(){
+    teams=[...document.querySelectorAll('#names input')].map(inp=>({name:inp.value.trim()||'Group 1',score:0,right:0}));
+    const picks = length==='short' ? SHORT : BANK.map((_,i)=>i);
+    quiz = picks.map(i=>{
+      const it=BANK[i]; const order=shuffle([0,1,2]);
+      return {...it, opts:order.map(k=>it.a[k]), correct:order.indexOf(it.c)};
+    });
+    idx=0; turn=0; running=true;
+    $('setup').hidden=true; $('endSheet').hidden=true;
+    $('startBtn').disabled=true; $('startBtn').innerHTML=bi('Misi sedang berjalan…','Mission in progress…');
+    renderQuestion();
+  }
+
+  /* ---------- camera: asked first, before anything else ---------- */
+  function gateMsg(ms,en,cls){
+    const g=$('gateMsg'); g.className='gate-msg'+(cls?' '+cls:'');
+    g.innerHTML = ms ? bi(ms,en) : '';
+  }
+  function showGate(){
+    $('setup').hidden=true; $('endSheet').hidden=true; $('camGate').hidden=false;
+    gateMsg('','');
+    $('camBtn').focus();
+  }
+  function afterGate(){
+    $('camGate').hidden=true;
+    $('setup').hidden=false;
+  }
+
+  async function openCamera(){
+    if(camOn) return true;
+    const inFrame = (()=>{ try{ return window.self!==window.top }catch(e){ return true } })();
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      gateMsg('Pelayar ini tidak dapat membuka kamera di sini. Muat turun fail HTML permainan ini dan buka dalam Google Chrome.',
+              'This browser cannot open the camera here. Download the game HTML file and open it in Google Chrome.','err');
+      return false;
+    }
+    gateMsg('Menunggu kebenaran… Pilih "Allow" pada tetingkap pelayar.','Waiting for permission… Choose "Allow" in the browser pop-up.','wait');
+    $('camBtn').disabled=true;
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
+    }catch(e){
+      $('camBtn').disabled=false;
+      const n = e && e.name;
+      if(n==='NotAllowedError' || n==='SecurityError'){
+        inFrame
+          ? gateMsg('Kamera disekat kerana permainan ini dibuka melalui pautan Claude. Muat turun fail HTML permainan ini dan buka terus dalam Google Chrome.',
+                    'The camera is blocked because this game is open through a Claude link. Download the game HTML file and open it directly in Google Chrome.','err')
+          : gateMsg('Kebenaran kamera disekat. Klik ikon kamera di bar alamat, pilih "Allow", kemudian tekan "Buka Kamera" sekali lagi.',
+                    'Camera permission was blocked. Click the camera icon in the address bar, choose "Allow", then press "Open Camera" again.','err');
+      }else if(n==='NotFoundError' || n==='OverconstrainedError'){
+        gateMsg('Tiada kamera dijumpai. Sambungkan kamera web, kemudian cuba lagi.','No camera was found. Connect a webcam, then try again.','err');
+      }else if(n==='NotReadableError' || n==='AbortError'){
+        gateMsg('Kamera sedang digunakan oleh aplikasi lain seperti Zoom, Meet atau Teams. Tutup aplikasi itu, kemudian cuba lagi.',
+                'The camera is being used by another app such as Zoom, Meet or Teams. Close that app, then try again.','err');
+      }else{
+        gateMsg('Kamera tidak dapat dibuka ('+(n||'ralat')+'). Cuba lagi, atau teruskan tanpa kamera.',
+                'The camera could not open ('+(n||'error')+'). Try again, or continue without the camera.','err');
+      }
+      return false;
+    }
+    video.srcObject=stream;
+    try{ await video.play() }catch(e){}
+    camOn=true; $('camBtn').disabled=false;
+    $('camMsg').hidden=true; $('camRetry').hidden=true;
+    startTracking();
+    gateMsg('Kamera dibuka! Angkat tangan anda untuk menguji.','Camera is on! Raise your hand to test it.','ok');
+    return true;
+  }
+
+  function startTracking(){
+    if(tracking) return; tracking=true;
+    if(window.Hands){
+      try{
+        hands=new Hands({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f});
+        hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:.6,minTrackingConfidence:.55});
+        hands.onResults(onResults);
+      }catch(e){ hands=null }
+    }
+    if(!hands) setStat('kamera dibuka, tetapi pengesanan tangan tidak dimuatkan. Gunakan klik atau papan kekunci.','camera on, but hand tracking did not load. Use clicks or the keyboard.');
+    else setStat('kamera dibuka','camera on');
+    const loop = async () => {
+      if(video.readyState>=2){
+        if(hands){
+          if(!processing){
+            processing=true;
+            try{ await hands.send({image:video}) }catch(e){}
+            processing=false;
+          }
+        }else{
+          drawFrame(video); drawZones(-1);
+        }
+      }
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
+
+  function drawFrame(src){
+    ctx.save(); ctx.setTransform(-1,0,0,1,canvas.width,0);
+    ctx.drawImage(src,0,0,canvas.width,canvas.height); ctx.restore();
+  }
+
+  function drawZones(active){
+    const w=canvas.width/3, labels=['A','B','C'], fills=['rgba(0,158,219,','rgba(255,201,60,','rgba(255,107,107,'];
+    for(let i=0;i<3;i++){
+      const on = i===active || i===locked;
+      ctx.fillStyle=fills[i]+(on?'.34)':'.12)');
+      ctx.fillRect(i*w,0,w,canvas.height);
+      ctx.fillStyle='rgba(255,255,255,.95)';
+      ctx.font='900 46px Poppins, system-ui'; ctx.textAlign='center';
+      ctx.fillText(labels[i], i*w+w/2, 58);
+      if(i===locked && running){
+        ctx.font='800 17px Poppins, system-ui'; ctx.fillText('LOCKED', i*w+w/2, 86);
+        ctx.font='italic 700 14px Nunito, system-ui'; ctx.fillText('DIKUNCI', i*w+w/2, 106);
+      }
+    }
+    ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=2;
+    [1,2].forEach(k=>{ctx.beginPath();ctx.moveTo(k*w,0);ctx.lineTo(k*w,canvas.height);ctx.stroke()});
+  }
+
+  function drawHand(lm){
+    const L=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+    const X=p=>(1-p.x)*canvas.width, Y=p=>p.y*canvas.height;
+    ctx.lineWidth=4; ctx.strokeStyle='#FFC93C';
+    L.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(X(lm[a]),Y(lm[a]));ctx.lineTo(X(lm[b]),Y(lm[b]));ctx.stroke()});
+    lm.forEach((p,i)=>{ctx.beginPath();ctx.arc(X(p),Y(p),i===8?12:5,0,Math.PI*2);ctx.fillStyle=i===8?'#8E7DFF':'#2EC4B6';ctx.fill()});
+  }
+
+  function isFist(lm){
+    const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+    let curled=0;
+    [[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>{ if(d(lm[t],lm[0])<d(lm[p],lm[0])) curled++ });
+    return curled>=3;
+  }
+
+  function setDwell(zone,frac){
+    btns.forEach((b,i)=>{
+      b.classList.toggle('hover', i===zone && !answered);
+      b.querySelector('.dwell').style.width = (i===zone && !answered && locked!==i ? frac*100 : 0)+'%';
+    });
+  }
+
+  function onResults(res){
+    drawFrame(res.image);
+    const lm = res.multiHandLandmarks && res.multiHandLandmarks[0];
+    if(!lm){
+      drawZones(-1); setDwell(-1,0);
+      setStat('tangan belum dikesan','no hand detected');
+      hoverZone=-1; fistFrames=0; fistLatched=false; return;
+    }
+    const x=1-lm[8].x;
+    const fist=isFist(lm);
+    const zone = x<1/3?0:x<2/3?1:2;
+    drawZones(fist?-1:zone); drawHand(lm);
+
+    if(!running||answered){
+      setDwell(-1,0);
+      running ? setStat('tekan N untuk soalan seterusnya','press N for the next question') : setStat('tangan dikesan','hand detected');
+      return;
+    }
+
+    if(fist){
+      fistFrames++; hoverZone=-1; setDwell(-1,0);
+      locked>=0 ? setStat('genggaman dikesan ⚡','fist detected ⚡') : setStat('kunci jawapan dahulu, kemudian genggam','lock an answer first, then make a fist');
+      if(fistFrames>=3 && !fistLatched){ fistLatched=true; if(locked>=0) strike() }
+      return;
+    }
+    fistFrames=0; fistLatched=false;
+
+    const now=performance.now();
+    if(zone!==hoverZone){ hoverZone=zone; dwellStart=now }
+    const frac=Math.min(1,(now-dwellStart)/DWELL_MS);
+    setDwell(zone, frac);
+    const L='ABC'[zone];
+    locked===zone ? setStat('jawapan '+L+' dikunci','answer '+L+' locked') : setStat('menghala ke '+L,'pointing at '+L);
+    if(frac>=1 && locked!==zone) choose(zone);
+  }
+
+  function idleCanvas(){
+    ctx.fillStyle='#13294B'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    drawZones(-1);
+    ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.font='72px system-ui'; ctx.fillText('🖐️',320,250);
+    ctx.font='800 24px Poppins, system-ui'; ctx.fillText('HAND RADAR',320,305);
+    ctx.font='italic 700 18px Nunito, system-ui'; ctx.fillText('RADAR TANGAN',320,332);
+  }
+
+  /* ---------- events ---------- */
+  btns.forEach((b,i)=>b.addEventListener('click',()=>{ if(!running||answered) return; if(locked===i) strike(); else choose(i) }));
+  $('camBtn').addEventListener('click',async()=>{
+    const ok = await openCamera();
+    if(ok) setTimeout(afterGate, 900);
+  });
+  $('skipCam').addEventListener('click',()=>{
+    $('camMsg').hidden=false;
+    $('camMsg').innerHTML='<div>'+bi('Mod klik. Tekan "Buka Kamera" untuk menggunakan tangan.','Click mode. Press "Open Camera" to use your hand.')+'</div>';
+    setStat('mod klik','click mode');
+    afterGate();
+  });
+  $('camRetry').addEventListener('click',showGate);
+  $('startBtn').addEventListener('click',()=>{ if(!camOn) showGate(); else { $('endSheet').hidden=true; $('setup').hidden=false } });
+  $('goBtn').addEventListener('click',begin);
+  $('cancelBtn').addEventListener('click',()=>{ $('setup').hidden=true });
+  $('againBtn').addEventListener('click',()=>{ $('endSheet').hidden=true; if(!camOn) showGate(); else $('setup').hidden=false });
+  $('closeEnd').addEventListener('click',()=>{ $('endSheet').hidden=true });
+  $('nextBtn').addEventListener('click',next);
+  $('soundBtn').addEventListener('click',()=>{
+    soundOn=!soundOn;
+    $('soundBtn').innerHTML = soundOn ? bi('Bunyi Dipasang','🔊 Sound On') : bi('Bunyi Dimatikan','🔇 Sound Off');
+    $('soundBtn').setAttribute('aria-pressed',String(soundOn)); if(soundOn) tone();
+  });
+  $('fsBtn').addEventListener('click',()=>{
+    try{ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{}) }catch(e){}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT') return;
+    if(!$('camGate').hidden || !$('setup').hidden) return;
+    const k=e.key.toLowerCase();
+    if(['a','b','c'].includes(k)) choose('abc'.indexOf(k));
+    else if(k===' '||k==='enter'){ e.preventDefault(); if(answered) next(); else strike() }
+    else if(k==='n') next();
+  });
+
+  setReveal('Arahan','Instructions',
+    'Halakan jari telunjuk ke jawapan dan tahan seketika untuk menguncinya. Kemudian genggam tangan untuk melancarkan petir.',
+    'Point your index finger at an answer and hold it to lock. Then make a fist to strike.');
+  setStat('menunggu kamera','waiting for camera');
+  btns.forEach((b,i)=>b.querySelector('.txt').innerHTML=bi('Jawapan '+'ABC'[i],'Answer '+'ABC'[i]));
+  teams=[...document.querySelectorAll('#names input')].map(i=>({name:i.value,score:0,right:0}));
+  renderTeams(); idleCanvas(); updateTimer();
+  $('qtotal').textContent=SHORT.length;
+  $('camBtn').focus();
+})();
+</script>
+</body>
+</html>

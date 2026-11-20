@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classroom Games | Danish Haikel</title>
+<meta name="description" content="Bilingual classroom games on the United Nations, arms control and counter-terrorism, built for the UniSZA SULAM programme.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#FFFFFF;
+--soft:#F6F6F4;
+--text:#111111;
+--muted:#6B6B6B;
+--line:#E7E7E4;
+--accent:#E11A45;
+--max:1080px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--text);color:#fff;padding:8px 14px;border-radius:6px;z-index:50}
+.skip:focus{left:16px}
+
+header.site{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.site .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.logo .mark{width:34px;height:34px;border-radius:8px;background:var(--text);color:#fff;display:grid;place-items:center;font-size:13px;letter-spacing:0}
+nav.menu ul{list-style:none;display:flex;gap:34px}
+nav.menu a{font-size:15px;font-weight:500;color:var(--muted);transition:color .15s}
+nav.menu a:hover,nav.menu a:focus-visible{color:var(--text)}
+nav.menu a[aria-current="page"]{color:var(--text);font-weight:600}
+.menu-btn{display:none;background:none;border:1px solid var(--line);border-radius:8px;width:42px;height:42px;cursor:pointer;place-items:center}
+.menu-btn span,.menu-btn span::before,.menu-btn span::after{display:block;width:18px;height:2px;background:var(--text);position:relative;content:""}
+.menu-btn span::before{position:absolute;top:-6px}
+.menu-btn span::after{position:absolute;top:6px}
+
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eyebrow a:hover{color:var(--text)}
+.tagline{font-size:clamp(19px,2.2vw,23px);color:var(--muted);line-height:1.5}
+.pagehead{padding:80px 0 8px}
+.pagehead h1{font-size:clamp(42px,6vw,68px);font-weight:800;letter-spacing:-.04em;line-height:1;margin:12px 0 14px}
+.pagehead .tagline{max-width:680px}
+.pagehead .ms{display:block;font-family:"Source Serif 4",Georgia,serif;font-style:italic;font-size:17px;color:var(--muted);margin-top:10px;max-width:680px}
+section.block{padding:48px 0 88px}
+
+.games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.game{border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s}
+.game:hover{border-color:var(--text)}
+.game .shot{display:block;aspect-ratio:16/9;background:var(--soft);border-bottom:1px solid var(--line);overflow:hidden}
+.game .shot img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.game:hover .shot img{transform:scale(1.03)}
+.game .body{padding:26px;display:flex;flex-direction:column;gap:10px;flex:1}
+.meta{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.game h2{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.game h2 small{display:block;font-family:"Source Serif 4",Georgia,serif;font-style:italic;font-weight:400;font-size:16px;color:var(--muted);margin-top:4px;letter-spacing:0}
+.game p{color:var(--muted);font-size:15.5px}
+.game p i{display:block;font-family:"Source Serif 4",Georgia,serif;margin-top:6px;font-size:15px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:2px solid var(--accent);padding-left:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:999px;font-size:15px;font-weight:600;border:1px solid var(--text);transition:background .15s,color .15s}
+.btn.dark{background:var(--text);color:#fff}
+.btn.dark:hover{background:#333}
+.game .btn{margin-top:auto;align-self:flex-start}
+
+footer{border-top:1px solid var(--line);padding:32px 0;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a:hover{color:var(--text)}
+
+@media (max-width:960px){.games{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){
+body{font-size:16px}
+.menu-btn{display:grid}
+nav.menu{position:absolute;top:72px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);display:none}
+nav.menu.open{display:block}
+nav.menu ul{flex-direction:column;gap:0;padding:8px 24px 16px}
+nav.menu a{display:block;padding:12px 0;font-size:17px;color:var(--text);border-bottom:1px solid var(--line)}
+.pagehead{padding:48px 0 0}
+section.block{padding:36px 0 64px}
+}
+@media (max-width:620px){.games{grid-template-columns:1fr}.game .body{padding:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<header class="site">
+<div class="wrap">
+<a class="logo" href="/" aria-label="Danish Haikel, home"><span class="mark">DH</span>Danish Haikel</a>
+<button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><span></span></button>
+<nav class="menu" id="menu" aria-label="Main">
+<ul>
+<li><a href="/profile">Profile</a></li>
+<li><a href="/artikel">Articles</a></li>
+<li><a href="/projects" aria-current="page">Projects</a></li>
+<li><a href="/contact">Contact</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<main id="content">
+
+<section class="pagehead">
+<div class="wrap">
+<div class="eyebrow"><a href="/projects">Projects</a> / Games</div>
+<h1>Classroom Games</h1>
+<p class="tagline">Bilingual games on the United Nations, arms control and counter-terrorism, built for the UniSZA SULAM programme with secondary school students.</p>
+<span class="ms">Permainan dwibahasa tentang Pertubuhan Bangsa-Bangsa Bersatu, kawalan senjata dan pembanterasan keganasan, dibina untuk program SULAM UniSZA bersama pelajar sekolah menengah.</span>
+</div>
+</section>
+
+<section class="block">
+<div class="wrap games">
+
+<article class="game">
+<a class="shot" href="/un-peace-mission" tabindex="-1" aria-hidden="true"><img src="/game-un-peace-mission.jpg" alt="" width="800" height="450" loading="lazy"></a>
+<div class="body">
+<div class="meta">Platform game</div>
+<h2>UN Peace Mission <small>Misi Keamanan PBB</small></h2>
+<p>Guide a UN officer through 7 checkpoint gates. Collect coins, seize smuggled weapons crates and answer questions on arms control and ISIL (Da'esh).
+<i>Bawa Pegawai PBB melalui 7 pintu sekatan. Kutip syiling, rampas peti senjata seludup dan jawab soalan tentang kawalan senjata dan ISIL (Da'esh).</i></p>
+<div class="pills"><span class="pill">7 questions</span><span class="pill">Keyboard or touch</span></div>
+<a class="btn dark" href="/un-peace-mission">Play / Main</a>
+</div>
+</article>
+
+<article class="game">
+<a class="shot" href="/kunci-petir-pbb" tabindex="-1" aria-hidden="true"><img src="/game-kunci-petir.jpg" alt="" width="800" height="450" loading="lazy"></a>
+<div class="body">
+<div class="meta">Hand gesture quiz</div>
+<h2>Kunci Petir PBB <small>UN Lightning Lock</small></h2>
+<p>Point at an answer with your finger to lock it, then make a fist to strike. Covers the UN, the Security Council, the veto and the Council's toolkit.
+<i>Halakan jari ke jawapan untuk mengunci, kemudian genggam tangan untuk melancarkan petir. Merangkumi PBB, Majlis Keselamatan, kuasa veto dan alat Majlis.</i></p>
+<div class="pills"><span class="pill">8 or 16 questions</span><span class="pill">Webcam</span></div>
+<p class="note">Open in Google Chrome and choose "Allow" when the camera prompt appears. Click mode works without a camera.</p>
+<a class="btn dark" href="/kunci-petir-pbb">Play / Main</a>
+</div>
+</article>
+
+<article class="game">
+<a class="shot" href="/kuiz-misi-menjaga-dunia" tabindex="-1" aria-hidden="true"><img src="/game-kuiz-misi.jpg" alt="" width="800" height="450" loading="lazy"></a>
+<div class="body">
+<div class="meta">Projector quiz</div>
+<h2>Mission to Protect the World <small>Kuiz Misi Menjaga Dunia</small></h2>
+<p>A 5 question projector quiz for one team. Students discuss for 20 seconds and raise an A, B, C or D card while the facilitator taps their answer.
+<i>Kuiz 5 soalan untuk satu pasukan. Pelajar berbincang selama 20 saat dan mengangkat kad A, B, C atau D, manakala fasilitator menekan jawapan mereka.</i></p>
+<div class="pills"><span class="pill">5 questions</span><span class="pill">Projector</span></div>
+<a class="btn dark" href="/kuiz-misi-menjaga-dunia">Play / Main</a>
+</div>
+</article>
+
+</div>
+</section>
+
+</main>
+
+<footer>
+<div class="wrap">
+<span>Danish Haikel © 2026. All rights reserved.</span>
+<a href="/assignments">Assignments</a>
+</div>
+</footer>
+
+<script>
+const btn = document.getElementById('menuBtn'), menu = document.getElementById('menu')
+btn.addEventListener('click', () => {
+const open = menu.classList.toggle('open')
+btn.setAttribute('aria-expanded', open)
+})
+menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false')
+}))
+</script>
+</body>
+</html>
