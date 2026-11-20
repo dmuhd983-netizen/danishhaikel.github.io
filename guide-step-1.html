@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<meta name="robots" content="noindex">
+<title>Guide Step 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1280px;height:600px;overflow:hidden;background:#f6f6f4;font-family:Inter,system-ui,sans-serif;color:#111}
+.bar{height:96px;display:flex;align-items:center;gap:18px;padding:0 40px;background:#111;color:#fff}
+.num{background:#E11A45;border-radius:999px;padding:8px 18px;font-weight:800;font-size:22px;letter-spacing:.04em}
+.bar h1{font-size:32px;font-weight:800;letter-spacing:-.02em}
+.shot{position:relative;margin:28px 40px 0;width:1200px;height:448px;overflow:hidden;border-radius:14px;border:1px solid #ddd;background:#fff;box-shadow:0 18px 40px -20px rgba(0,0,0,.35)}
+.shot iframe{position:absolute;left:-40px;top:0;width:1280px;height:700px;border:0}
+svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tip{position:absolute;background:#E11A45;color:#fff;font-weight:800;font-size:26px;padding:12px 22px;border-radius:12px;box-shadow:0 10px 24px -10px rgba(225,26,69,.7);white-space:nowrap;display:none}
+</style>
+</head>
+<body>
+<div class="bar"><span class="num">STEP 2</span><h1>Click <u>Games</u> in the top menu</h1></div>
+<div class="shot" id="shot">
+<iframe id="f" src="/" scrolling="no"></iframe>
+<svg id="ov"></svg>
+<div class="tip" id="tip">Click here</div>
+</div>
+<script>
+{
+const f=document.getElementById('f'), ov=document.getElementById('ov'), tip=document.getElementById('tip');
+f.addEventListener('load',()=>setTimeout(()=>{
+  const a=f.contentDocument.querySelector('nav a[href="/games"]'); if(!a) return;
+  const r=a.getBoundingClientRect(), ox=-40;
+  const cx=r.left+r.width/2+ox, cy=r.top+r.height/2, rx=r.width/2+26, ry=r.height/2+16;
+  const tx=cx-330, ty=cy+170;
+  ov.innerHTML=`<defs><marker id="h" markerUnits="userSpaceOnUse" markerWidth="26" markerHeight="26" refX="16" refY="13" orient="auto"><path d="M0,0 L26,13 L0,26 z" fill="#E11A45"/></marker></defs>
+  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#E11A45" stroke-width="6"/>
+  <path d="M${tx+170},${ty} C ${tx+200},${cy+80} ${cx-140},${cy+60} ${cx-rx+4},${cy+10}" fill="none" stroke="#E11A45" stroke-width="6" stroke-linecap="round" marker-end="url(#h)"/>`;
+  tip.style.left=(tx)+'px'; tip.style.top=(ty)+'px'; tip.style.display='block';
+},300));
+}
+</script>
+</body>
+</html>
